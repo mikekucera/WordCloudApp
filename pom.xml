@@ -3,11 +3,14 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.cytoscape</groupId>
-	<artifactId>sample28-app</artifactId>
-	<version>3.1.0-SNAPSHOT</version>
+	<artifactId>wordcloud</artifactId>
+	<version>1.0</version>
 	<packaging>bundle</packaging>
-	<name>Cytoscape Sample 28 App (${artifactId})</name>
 	
+	<name>Word Cloud App</name>
+	<!--
+	<name>Word Cloud App (${artifactId})</name>
+	-->
 	<properties>
 		<bundle.symbolicName>sample28</bundle.symbolicName>
 		<bundle.namespace>org.cytoscape.sample.internal</bundle.namespace>
