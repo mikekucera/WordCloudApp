@@ -56,41 +56,5 @@ public class MyCytoPanel extends JPanel implements CytoPanelComponent {
 	public Icon getIcon() {
 		return null;
 	}
-//
-//
-///**
-//     * Creates a sample dataset 
-//     */
-//
-//    private  PieDataset createDataset() {
-//        DefaultPieDataset result = new DefaultPieDataset();
-//        result.setValue("Linux", 29);
-//        result.setValue("Mac", 20);
-//        result.setValue("Windows", 51);
-//        return result;
-//        
-//    }
-//    
-//    
-///**
-//     * Creates a chart
-//     */
-//
-//    private JFreeChart createChart(PieDataset dataset, String title) {
-//        
-//        JFreeChart chart = ChartFactory.createPieChart3D(
-//            title,  				// chart title
-//            dataset,                // data
-//            true,                   // include legend
-//            true,
-//            false
-//        );
-//
-//        PiePlot3D plot = (PiePlot3D) chart.getPlot();
-//        plot.setStartAngle(290);
-//        plot.setDirection(Rotation.CLOCKWISE);
-//        plot.setForegroundAlpha(0.5f);
-//        return chart;
-//        
-//    }
+
 }
