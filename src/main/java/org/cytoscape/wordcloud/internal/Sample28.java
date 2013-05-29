@@ -1,4 +1,4 @@
-package org.cytoscape.sample.internal;
+package org.cytoscape.wordcloud.internal;
 
 import java.awt.event.ActionEvent;
 

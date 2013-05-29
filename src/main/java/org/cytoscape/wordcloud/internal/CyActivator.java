@@ -1,9 +1,7 @@
-package org.cytoscape.sample.internal;
+package org.cytoscape.wordcloud.internal;
 
 import org.cytoscape.application.swing.CySwingApplication;
 
-import org.cytoscape.sample.internal.MyCytoPanel;
-import org.cytoscape.sample.internal.Sample28;
 
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CyAction;
@@ -11,6 +9,8 @@ import org.cytoscape.application.swing.CyAction;
 import org.osgi.framework.BundleContext;
 
 import org.cytoscape.service.util.AbstractCyActivator;
+import org.cytoscape.wordcloud.internal.MyCytoPanel;
+import org.cytoscape.wordcloud.internal.Sample28;
 
 import java.util.Properties;
 
