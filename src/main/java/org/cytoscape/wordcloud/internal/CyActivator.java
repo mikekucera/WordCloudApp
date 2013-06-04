@@ -31,7 +31,11 @@ public class CyActivator extends AbstractCyActivator {
 //		registerService(bc,myCytoPanel,CytoPanelComponent.class, new Properties());
 //		registerService(bc,sample28Action,CyAction.class, new Properties());
 		
-		System.out.println("SampleApp 28 loaded");
+//		System.out.println("SampleApp 28 loaded");
+		
+		ShowWordCloudAction showWordCloudAction = new ShowWordCloudAction();
+		
+		registerService(bc, showWordCloudAction, CyAction.class, new Properties());
 	}
 }
 
