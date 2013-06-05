@@ -23,7 +23,7 @@ public class CyActivator extends AbstractCyActivator {
 
 	public void start(BundleContext bc) {
 
-		CySwingApplication cytoscapeDesktopService = getService(bc,CySwingApplication.class);
+//		CySwingApplication cytoscapeDesktopService = getService(bc,CySwingApplication.class);
 		
 //		MyCytoPanel myCytoPanel = new MyCytoPanel("Chart Test","This is my Chart");
 //		Sample28 sample28Action = new Sample28(cytoscapeDesktopService,myCytoPanel);
