@@ -8,6 +8,8 @@ import org.cytoscape.application.swing.CyAction;
 
 import org.osgi.framework.BundleContext;
 
+import org.cytoscape.model.events.RowsSetEvent;
+import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.wordcloud.internal.MyCytoPanel;
 import org.cytoscape.wordcloud.internal.Sample28;
@@ -36,6 +38,17 @@ public class CyActivator extends AbstractCyActivator {
 		ShowWordCloudAction showWordCloudAction = new ShowWordCloudAction();
 		
 		registerService(bc, showWordCloudAction, CyAction.class, new Properties());
+		
+		RowsSetListener rowsSetListener = new RowsSetListener() {
+			
+			@Override
+			public void handleEvent(RowsSetEvent e) {
+				System.out.println("rowSetListener alerted");
+			}
+		};
+		
+		registerAllServices(bc, rowsSetListener, new Properties());
+		System.out.println("rowSetListener registered");
 	}
 }
 
