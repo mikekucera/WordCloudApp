@@ -12,7 +12,7 @@
 	<name>Word Cloud App (${artifactId})</name>
 	-->
 	<properties>
-		<bundle.symbolicName>sample28</bundle.symbolicName>
+		<bundle.symbolicName>wordcloud</bundle.symbolicName>
 		<bundle.namespace>org.cytoscape.wordcloud.internal</bundle.namespace>
 		<cytoscape.api.version>3.1.0-SNAPSHOT</cytoscape.api.version>
 		<maven-bundle-plugin.version>2.3.4</maven-bundle-plugin.version>
