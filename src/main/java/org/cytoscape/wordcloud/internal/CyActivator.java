@@ -36,88 +36,18 @@ public class CyActivator extends AbstractCyActivator {
 
 
 	public void start(BundleContext bc) {
-
-//		CySwingApplication cytoscapeDesktopService = getService(bc,CySwingApplication.class);
 		
-//		MyCytoPanel myCytoPanel = new MyCytoPanel("Chart Test","This is my Chart");
-//		Sample28 sample28Action = new Sample28(cytoscapeDesktopService,myCytoPanel);
-//		
-//		registerService(bc,myCytoPanel,CytoPanelComponent.class, new Properties());
-//		registerService(bc,sample28Action,CyAction.class, new Properties());
-		
-//		System.out.println("SampleApp 28 loaded");
-		
+		// Create & register menu item
 		ShowWordCloudAction showWordCloudAction = new ShowWordCloudAction();
-		
 		registerService(bc, showWordCloudAction, CyAction.class, new Properties());
 		
+		// Create & register node selection listener
 		CyApplicationManager cyApplicationManager = getService(bc, CyApplicationManager.class);
-		
 		WordCloudRowSetListener wordCloudRowSetListener = new WordCloudRowSetListener(cyApplicationManager);
 		registerAllServices(bc, wordCloudRowSetListener, new Properties());
 		
-		RowsSetListener rowsSetListener = new RowsSetListener() {
-			
-			@Override
-			public void handleEvent(RowsSetEvent e) {
-				System.out.println("rowSetListener alerted");
-				
-				System.out.println("Selection event? " + e.containsColumn("selected"));
-				
-//				System.out.println("id Event? " + e.containsColumn("o_id28349278l"));
-				
-				//RowSetRecord a;
-				
-				RowSetRecord a1;
 		
-				
-//				e.getSource();
 		
-				// System.out.println("Source table: " + e.getSource().getSUID());
-				
-				/*
-				List<CyNode> selectedNodes = fetchSelectedNodes(cyApplicationManager.getCurrentNetwork());
-				System.out.println("Number of selected nodes on current network: " + selectedNodes.size());
-				
-				CyTable cyTable = cyApplicationManager.getCurrentTable();
-				*/
-				
-				//cyTable.
-				
-//				cyTable.getRow(primaryKey);
-				
-				/*
-				System.out.println("Start printing all attributes");
-				for (CyRow cyRow : cyTable.getAllRows()) { 
-					System.out.println(cyRow.getAllValues());
-				}
-				*/
-				// CyTable cyTable = e.getSource();
-				
-				
-				/*
-				CyNetwork a;
-				CyApplicationManager c1;
-//				c1.
-				CyNetworkManager c2;
-				//c2.
-				// Collection<RowSetRecord> rowSetRecords = e.getColumnRecords("selected");
-				CyTableManager c3;
-				
-				CySwingApplication c4;
-				*/
-				
-				/*
-				System.out.println("Start Print RowSetRecords");
-				for (RowSetRecord rowSetRecord : rowSetRecords) {
-					System.out.println(rowSetRecord.getValue());
-				}
-				System.out.println("End Print RowSetRecords");
-				*/
-			}
-		};
-		
-//		registerAllServices(bc, rowsSetListener, new Properties());
 		System.out.println("rowSetListener registered");
 	}
 	
