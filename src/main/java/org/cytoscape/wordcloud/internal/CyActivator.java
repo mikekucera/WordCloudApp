@@ -38,7 +38,8 @@ public class CyActivator extends AbstractCyActivator {
 	public void start(BundleContext bc) {
 		
 		// Create & register menu item
-		ShowWordCloudAction showWordCloudAction = new ShowWordCloudAction();
+		CySwingApplication cySwingApplication = getService(bc, CySwingApplication.class);
+		ShowWordCloudAction showWordCloudAction = new ShowWordCloudAction(cySwingApplication);
 		registerService(bc, showWordCloudAction, CyAction.class, new Properties());
 		
 		// Create & register node selection listener
