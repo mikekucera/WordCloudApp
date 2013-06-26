@@ -8,9 +8,6 @@
 	<packaging>bundle</packaging>
 	
 	<name>Word Cloud App</name>
-	<!--
-	<name>Word Cloud App (${artifactId})</name>
-	-->
 	<properties>
 		<bundle.symbolicName>wordcloud</bundle.symbolicName>
 		<bundle.namespace>org.cytoscape.wordcloud.internal</bundle.namespace>
