@@ -21,12 +21,23 @@ public class WordCloudRowSetListener implements RowsSetListener {
 
 	private CyApplicationManager cyApplicationManager;
 	
-	public WordCloudRowSetListener(CyApplicationManager cyApplicationManager) {
+	private WordCloudDialog wordCloudDialog;
+	
+	public WordCloudRowSetListener(CyApplicationManager cyApplicationManager,
+			WordCloudDialog wordCloudDialog) {
 		this.cyApplicationManager = cyApplicationManager;
+		
+		this.wordCloudDialog = wordCloudDialog;
 	}
 	
 	@Override
 	public void handleEvent(RowsSetEvent e) {
+		
+		// Only take events that contain the "selected" column, and come from the default node table of the current network
+		if (e.containsColumn("selected") == false
+				|| e.getSource() != this.cyApplicationManager.getCurrentNetwork().getDefaultNodeTable()) {
+			return;
+		}
 		
 		// Get selected nodes
 		// TODO: cyApplicationManager's current network may not be the triggering network
@@ -52,7 +63,16 @@ public class WordCloudRowSetListener implements RowsSetListener {
 			
 			System.out.println("Test1");
 			
-			System.out.println("getWordCounts(): " + this.getWordCounts(selectedNodes, this.cyApplicationManager.getCurrentNetwork()));
+			Map<String, Integer> wordCounts = this.getWordCounts(selectedNodes, this.cyApplicationManager.getCurrentNetwork());
+			System.out.println("getWordCounts(): " + wordCounts);
+			
+			if (this.wordCloudDialog.isVisible()) {
+				this.wordCloudDialog.populateWordCloud(wordCounts);
+			}
+		} else {
+			if (this.wordCloudDialog.isVisible()) {
+				this.wordCloudDialog.clearWordCloud();
+			}
 		}
 	}
 	
@@ -115,4 +135,5 @@ public class WordCloudRowSetListener implements RowsSetListener {
 		return words;
 	}
 
+	
 }

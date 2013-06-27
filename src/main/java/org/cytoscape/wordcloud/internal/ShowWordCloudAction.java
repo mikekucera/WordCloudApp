@@ -13,28 +13,29 @@ public class ShowWordCloudAction extends AbstractCyAction {
 	
 	CySwingApplication cySwingApplication;
 	
-	public ShowWordCloudAction(CySwingApplication cySwingApplication) {
+	public ShowWordCloudAction(CySwingApplication cySwingApplication, WordCloudDialog wordCloudDialog) {
 		super("Show Word Cloud");
 		setPreferredMenu("Apps.WordCloud");
 		
 		this.cySwingApplication = cySwingApplication;
+		
+		if (wordCloudDialog == null) {
+			throw new RuntimeException("wordCloudDialog must not be null");
+		}
+		
+		this.wordCloudDialog = wordCloudDialog;
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		System.out.println("Word Cloud clicked");
 		
-		if (this.wordCloudDialog == null) {
-			this.wordCloudDialog = new WordCloudDialog(this.cySwingApplication.getJFrame());
-		}
-		
-		this.wordCloudDialog.setVisible(true);
-		
 		this.wordCloudDialog.setLocationRelativeTo(this.cySwingApplication.getJFrame());
 
 		// Offset the dialog slightly
 		Point currentLocation = this.wordCloudDialog.getLocation();
 		this.wordCloudDialog.setLocation((int) currentLocation.getX() + 400, (int) currentLocation.getY() - 240);
-		
+	
+		this.wordCloudDialog.setVisible(true);
 	}
 }
