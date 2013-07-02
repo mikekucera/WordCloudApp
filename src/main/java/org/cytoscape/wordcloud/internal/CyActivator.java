@@ -37,14 +37,17 @@ public class CyActivator extends AbstractCyActivator {
 
 	public void start(BundleContext bc) {
 		
-		// Create & register menu item
+		// Create the word cloud dialog
 		CySwingApplication cySwingApplication = getService(bc, CySwingApplication.class);
-		ShowWordCloudAction showWordCloudAction = new ShowWordCloudAction(cySwingApplication);
+		WordCloudDialog wordCloudDialog = new WordCloudDialog(cySwingApplication.getJFrame());
+		
+		// Create & register menu item
+		ShowWordCloudAction showWordCloudAction = new ShowWordCloudAction(cySwingApplication, wordCloudDialog);
 		registerService(bc, showWordCloudAction, CyAction.class, new Properties());
 		
 		// Create & register node selection listener
 		CyApplicationManager cyApplicationManager = getService(bc, CyApplicationManager.class);
-		WordCloudRowSetListener wordCloudRowSetListener = new WordCloudRowSetListener(cyApplicationManager);
+		WordCloudRowSetListener wordCloudRowSetListener = new WordCloudRowSetListener(cyApplicationManager, wordCloudDialog);
 		registerAllServices(bc, wordCloudRowSetListener, new Properties());
 		
 		
