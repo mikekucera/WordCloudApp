@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 
 import org.cytoscape.application.swing.AbstractCyAction;
 import org.cytoscape.application.swing.CySwingApplication;
+import org.cytoscape.wordcloud.internal.ui.WordCloudDialog;
 import org.w3c.dom.views.AbstractView;
 
 public class ShowWordCloudAction extends AbstractCyAction {
@@ -28,7 +29,7 @@ public class ShowWordCloudAction extends AbstractCyAction {
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		System.out.println("Word Cloud clicked");
+		// System.out.println("Word Cloud clicked");
 		
 		this.wordCloudDialog.setLocationRelativeTo(this.cySwingApplication.getJFrame());
 

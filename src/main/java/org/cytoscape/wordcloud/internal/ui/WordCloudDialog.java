@@ -1,11 +1,16 @@
-package org.cytoscape.wordcloud.internal;
+package org.cytoscape.wordcloud.internal.ui;
 
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+
+import org.cytoscape.wordcloud.internal.WordCloudSettings;
+import org.cytoscape.wordcloud.internal.swing.WrapLayout;
 
 public class WordCloudDialog extends JDialog {
 
@@ -80,29 +85,69 @@ public class WordCloudDialog extends JDialog {
         // TODO add your handling code here:
     }
 	
-	public void populateWordCloud(Map<String, Integer> wordCounts) {
+	public void populateWordCloud(Map<String, Integer> wordCounts, WordCloudSettings wordCloudSettings) {
 		if (!this.isVisible()) {
-//			System.out.println("Word cloud updated while not visible, doing nothing ..");
+			// Word cloud updated while not visible
 			return;
 		}
 		
-		JLabel contents = new JLabel(wordCounts.toString());
-		
 		this.wordCloudPanel.removeAll();
-		this.wordCloudPanel.setLayout(new FlowLayout());
-		this.wordCloudPanel.add(contents);
+		this.wordCloudPanel.setLayout(new WrapLayout());
 		
-		System.out.println("Updated word cloud3");
+		// Obtain the min and maximum word appearance counts
+		int minAppearCount = 0;
+		int maxAppearCount = 0;
+		
+		if (wordCounts.size() > 0) {
+			minAppearCount = wordCounts.values().iterator().next();
+			maxAppearCount = minAppearCount;
+		}
+		
+		for (Integer appearCount : wordCounts.values()) {
+			if (appearCount < minAppearCount) {
+				minAppearCount = appearCount;
+			}
+			
+			if (appearCount > maxAppearCount) {
+				maxAppearCount = appearCount;
+			}
+		}
+		
+		for (Entry<String, Integer> entry : wordCounts.entrySet()) {
+			String word = entry.getKey();
+			int count = entry.getValue();
+			
+			int fontSize = calculateFontSize(count, minAppearCount, maxAppearCount, 10, 20);
+			
+			JLabel label = new JLabel(word);
+			
+			Font defaultLabelFont = label.getFont();
+			Font font = new Font(defaultLabelFont.getFontName(), defaultLabelFont.getStyle(), fontSize);
+			
+			label.setFont(font);
+			
+			this.wordCloudPanel.add(label);
+		}
 		
 		// this.pack();
 		this.wordCloudPanel.validate();
 		this.wordCloudPanel.repaint();
-		
-		// TODO: Consider using wraplayout
-		// TODO: Need to split map into strings
 	}
 	
 	public void clearWordCloud() {
 		this.wordCloudPanel.removeAll();
+	}
+	
+	private int calculateFontSize(int appearCount, 
+			int minAppearCount, int maxAppearCount, int minFontSize, int maxFontSize) {
+		
+		if (minAppearCount == maxAppearCount) {
+			return (int) Math.round((minFontSize + maxFontSize) / 2.0);
+		}
+		
+		return (int) Math.round(
+					(appearCount - minAppearCount) / (1.0 * maxAppearCount - minAppearCount) 
+					* (maxFontSize - minFontSize) + minFontSize
+				);
 	}
 }

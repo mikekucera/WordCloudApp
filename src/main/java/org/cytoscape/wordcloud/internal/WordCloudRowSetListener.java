@@ -16,18 +16,22 @@ import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableUtil;
 import org.cytoscape.model.events.RowsSetEvent;
 import org.cytoscape.model.events.RowsSetListener;
+import org.cytoscape.wordcloud.internal.ui.WordCloudDialog;
 
 public class WordCloudRowSetListener implements RowsSetListener {
 
 	private CyApplicationManager cyApplicationManager;
 	
 	private WordCloudDialog wordCloudDialog;
+	private WordCloudSettings wordCloudSettings;
 	
 	public WordCloudRowSetListener(CyApplicationManager cyApplicationManager,
-			WordCloudDialog wordCloudDialog) {
+			WordCloudDialog wordCloudDialog,
+			WordCloudSettings wordCloudSettings) {
 		this.cyApplicationManager = cyApplicationManager;
 		
 		this.wordCloudDialog = wordCloudDialog;
+		this.wordCloudSettings = wordCloudSettings;
 	}
 	
 	@Override
@@ -42,7 +46,7 @@ public class WordCloudRowSetListener implements RowsSetListener {
 		// Get selected nodes
 		// TODO: cyApplicationManager's current network may not be the triggering network
 		List<CyNode> selectedNodes = fetchSelectedNodes(this.cyApplicationManager.getCurrentNetwork());
-		System.out.println("Number of selected nodes on current network: " + selectedNodes.size());
+		//System.out.println("Number of selected nodes on current network: " + selectedNodes.size());
 		
 		// Get the table for the current network
 		CyTable cyTable = e.getSource();
@@ -54,6 +58,8 @@ public class WordCloudRowSetListener implements RowsSetListener {
 		if (selectedNodes != null && selectedNodes.size() > 0) {
 		
 			CyNode selectedNode = selectedNodes.iterator().next();
+			
+			/*
 			System.out.println("Selected Node: " + selectedNode);
 			
 			System.out.println("cyTable: " + cyTable);
@@ -62,12 +68,13 @@ public class WordCloudRowSetListener implements RowsSetListener {
 			System.out.println("Row for a given selected node: " + cyTable.getRow(selectedNode.getSUID()).getAllValues());
 			
 			System.out.println("Test1");
+			*/
 			
 			Map<String, Integer> wordCounts = this.getWordCounts(selectedNodes, this.cyApplicationManager.getCurrentNetwork());
-			System.out.println("getWordCounts(): " + wordCounts);
-			
+			//System.out.println("getWordCounts(): " + wordCounts);
+			 
 			if (this.wordCloudDialog.isVisible()) {
-				this.wordCloudDialog.populateWordCloud(wordCounts);
+				this.wordCloudDialog.populateWordCloud(wordCounts, wordCloudSettings);
 			}
 		} else {
 			if (this.wordCloudDialog.isVisible()) {
@@ -110,6 +117,8 @@ public class WordCloudRowSetListener implements RowsSetListener {
 	 * @return
 	 */
 	private List<String> getWords(CyNode node, CyNetwork network) {
+		// TODO: Split strings into individual words, then add the words
+		
 		List<String> words = new LinkedList<String>();
 		
 		CyRow correspondingRow = network.getRow(node);
@@ -119,6 +128,7 @@ public class WordCloudRowSetListener implements RowsSetListener {
 		
 		for (Object value : rowValues.values()) {
 			if (value instanceof String) {
+				// Split the string based on punctuation and spaces, then add the individual words
 				words.add((String) value);
 			} else if (value instanceof List) {
 				
@@ -126,6 +136,8 @@ public class WordCloudRowSetListener implements RowsSetListener {
 				
 				for (Object listObject : list) {
 					if (listObject instanceof String) {
+						// Split the string based on punctuation and spaces, then add the individual words
+						
 						words.add((String) listObject);
 					}
 				}
@@ -136,4 +148,9 @@ public class WordCloudRowSetListener implements RowsSetListener {
 	}
 
 	
+	private Collection<String> splitStringToWords(String text) {
+//		List<String>
+		
+		return null;
+	}
 }
