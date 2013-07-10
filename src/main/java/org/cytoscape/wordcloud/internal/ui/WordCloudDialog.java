@@ -2,6 +2,7 @@ package org.cytoscape.wordcloud.internal.ui;
 
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Point;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -9,31 +10,65 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-import org.cytoscape.wordcloud.internal.WordCloudSettings;
+import org.cytoscape.application.swing.CySwingApplication;
+import org.cytoscape.wordcloud.internal.WordCloudSettingsHolder;
 import org.cytoscape.wordcloud.internal.swing.WrapLayout;
 
 public class WordCloudDialog extends JDialog {
 
 	private static final long serialVersionUID = -7903863195663449806L;
 	
-	private javax.swing.JButton settingsButton;
-    private javax.swing.JPanel wordCloudPanel;
+	private WordCloudSettingsDialog wordCloudSettingsDialog;
+	private CySwingApplication cySwingApplication;
 	
-	public WordCloudDialog(JFrame owner) {
+	javax.swing.JButton settingsButton;
+    javax.swing.JPanel wordCloudPanel;
+    javax.swing.JScrollPane wordCloudScrollPane;
+    
+    // Used to position the dialog for the first time it is shown
+    private boolean firstTimeShown = true;
+	
+	public WordCloudDialog(JFrame owner, WordCloudSettingsDialog wordCloudSettingsDialog, CySwingApplication cySwingApplication) {
 		super(owner);
 		
 		initComponents();
 		
-		//this.setAlwaysOnTop(true);
-		this.setSize(400, 400);
+		this.wordCloudSettingsDialog = wordCloudSettingsDialog;
+		this.cySwingApplication = cySwingApplication;
+		
+		this.setSize(450, 450);
+	}
+	
+	public boolean isFirstTimeShown() {
+		return this.firstTimeShown;
+	}
+	
+	public void setFirstTimeShown(boolean firstTimeShown) {
+		this.firstTimeShown = firstTimeShown;
 	}
 	
 	private void initComponents() {
 
-        settingsButton = new javax.swing.JButton();
+        wordCloudScrollPane = new javax.swing.JScrollPane();
         wordCloudPanel = new javax.swing.JPanel();
+        settingsButton = new javax.swing.JButton();
 
-//        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Word Cloud");
+
+        wordCloudScrollPane.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+        javax.swing.GroupLayout wordCloudPanelLayout = new javax.swing.GroupLayout(wordCloudPanel);
+        wordCloudPanel.setLayout(wordCloudPanelLayout);
+        wordCloudPanelLayout.setHorizontalGroup(
+            wordCloudPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 458, Short.MAX_VALUE)
+        );
+        wordCloudPanelLayout.setVerticalGroup(
+            wordCloudPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 309, Short.MAX_VALUE)
+        );
+
+        wordCloudScrollPane.setViewportView(wordCloudPanel);
 
         settingsButton.setText("Settings");
         settingsButton.addActionListener(new java.awt.event.ActionListener() {
@@ -42,37 +77,24 @@ public class WordCloudDialog extends JDialog {
             }
         });
 
-        wordCloudPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Output"));
-
-        javax.swing.GroupLayout wordCloudPanelLayout = new javax.swing.GroupLayout(wordCloudPanel);
-        wordCloudPanel.setLayout(wordCloudPanelLayout);
-        wordCloudPanelLayout.setHorizontalGroup(
-            wordCloudPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-        wordCloudPanelLayout.setVerticalGroup(
-            wordCloudPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 325, Short.MAX_VALUE)
-        );
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(wordCloudScrollPane)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 293, Short.MAX_VALUE)
-                        .addComponent(settingsButton))
-                    .addComponent(wordCloudPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(settingsButton)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+            .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(wordCloudPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(wordCloudScrollPane)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(settingsButton)
                 .addContainerGap())
@@ -82,10 +104,20 @@ public class WordCloudDialog extends JDialog {
     }
 	
 	private void settingsButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        // TODO add your handling code here:
+		
+		if (this.wordCloudSettingsDialog.isFirstTimeShown()) {
+			this.wordCloudSettingsDialog.setLocationRelativeTo(this.cySwingApplication.getJFrame());
+	
+			// Offset the dialog slightly
+			Point currentLocation = this.wordCloudSettingsDialog.getLocation();
+			this.wordCloudSettingsDialog.setLocation((int) currentLocation.getX() - 350, (int) currentLocation.getY() - 200);
+			this.wordCloudSettingsDialog.setFirstTimeShown(false);
+		}
+		
+		this.wordCloudSettingsDialog.setVisible(true);
     }
 	
-	public void populateWordCloud(Map<String, Integer> wordCounts, WordCloudSettings wordCloudSettings) {
+	public void populateWordCloud(Map<String, Integer> wordCounts, WordCloudSettingsHolder wordCloudSettings) {
 		if (!this.isVisible()) {
 			// Word cloud updated while not visible
 			return;
@@ -117,9 +149,12 @@ public class WordCloudDialog extends JDialog {
 			String word = entry.getKey();
 			int count = entry.getValue();
 			
-			int fontSize = calculateFontSize(count, minAppearCount, maxAppearCount, 10, 20);
+			int fontSize = calculateFontSize(count, minAppearCount, maxAppearCount,
+					wordCloudSettings.getMinWordCloudFontSize(),
+					wordCloudSettings.getMaxWordCloudFontSize());
 			
-			JLabel label = new JLabel(word);
+			// Shorten the word if necessary
+			JLabel label = new JLabel(wordCloudSettings.getWordShortener().shortenWord(word));
 			
 			Font defaultLabelFont = label.getFont();
 			Font font = new Font(defaultLabelFont.getFontName(), defaultLabelFont.getStyle(), fontSize);
@@ -130,12 +165,15 @@ public class WordCloudDialog extends JDialog {
 		}
 		
 		// this.pack();
-		this.wordCloudPanel.validate();
-		this.wordCloudPanel.repaint();
+		this.wordCloudScrollPane.validate();
+		this.wordCloudScrollPane.repaint();
 	}
 	
 	public void clearWordCloud() {
 		this.wordCloudPanel.removeAll();
+		
+		this.wordCloudScrollPane.validate();
+		this.wordCloudScrollPane.repaint();
 	}
 	
 	private int calculateFontSize(int appearCount, 

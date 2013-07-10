@@ -31,12 +31,17 @@ public class ShowWordCloudAction extends AbstractCyAction {
 	public void actionPerformed(ActionEvent arg0) {
 		// System.out.println("Word Cloud clicked");
 		
-		this.wordCloudDialog.setLocationRelativeTo(this.cySwingApplication.getJFrame());
-
-		// Offset the dialog slightly
-		Point currentLocation = this.wordCloudDialog.getLocation();
-		this.wordCloudDialog.setLocation((int) currentLocation.getX() + 400, (int) currentLocation.getY() - 240);
+		if (this.wordCloudDialog.isFirstTimeShown()) {
+		
+			this.wordCloudDialog.setLocationRelativeTo(this.cySwingApplication.getJFrame());
 	
+			// Offset the dialog slightly
+			Point currentLocation = this.wordCloudDialog.getLocation();
+			this.wordCloudDialog.setLocation((int) currentLocation.getX() + 450, (int) currentLocation.getY() - 230);
+				
+			this.wordCloudDialog.setFirstTimeShown(false);
+		}
+		
 		this.wordCloudDialog.setVisible(true);
 	}
 }
