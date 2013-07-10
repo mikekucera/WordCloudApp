@@ -17,17 +17,18 @@ import org.cytoscape.model.CyTableUtil;
 import org.cytoscape.model.events.RowsSetEvent;
 import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.wordcloud.internal.ui.WordCloudDialog;
+import org.cytoscape.wordcloud.internal.util.WordTokenizer;
 
 public class WordCloudRowSetListener implements RowsSetListener {
 
 	private CyApplicationManager cyApplicationManager;
 	
 	private WordCloudDialog wordCloudDialog;
-	private WordCloudSettings wordCloudSettings;
+	private WordCloudSettingsHolder wordCloudSettings;
 	
 	public WordCloudRowSetListener(CyApplicationManager cyApplicationManager,
 			WordCloudDialog wordCloudDialog,
-			WordCloudSettings wordCloudSettings) {
+			WordCloudSettingsHolder wordCloudSettings) {
 		this.cyApplicationManager = cyApplicationManager;
 		
 		this.wordCloudDialog = wordCloudDialog;
@@ -59,20 +60,8 @@ public class WordCloudRowSetListener implements RowsSetListener {
 		
 			CyNode selectedNode = selectedNodes.iterator().next();
 			
-			/*
-			System.out.println("Selected Node: " + selectedNode);
-			
-			System.out.println("cyTable: " + cyTable);
-			
-			System.out.println("cyTable.getRow(): " + cyTable.getRow(selectedNode.getSUID()));
-			System.out.println("Row for a given selected node: " + cyTable.getRow(selectedNode.getSUID()).getAllValues());
-			
-			System.out.println("Test1");
-			*/
-			
 			Map<String, Integer> wordCounts = this.getWordCounts(selectedNodes, this.cyApplicationManager.getCurrentNetwork());
-			//System.out.println("getWordCounts(): " + wordCounts);
-			 
+			
 			if (this.wordCloudDialog.isVisible()) {
 				this.wordCloudDialog.populateWordCloud(wordCounts, wordCloudSettings);
 			}
@@ -93,7 +82,9 @@ public class WordCloudRowSetListener implements RowsSetListener {
 		Map<String, Integer> wordCounts = new HashMap<String, Integer>();
 		
 		for (CyNode node : nodes) {
-			List<String> nodeWords = this.getWords(node, network);
+			List<String> nodeWords = this.getWords(node, network,
+					this.wordCloudSettings.getWordTokenizer(),
+					this.wordCloudSettings.getExcludedColumnsMap());
 			
 			for (String word : nodeWords) {
 				if (wordCounts.get(word) == null) {
@@ -116,8 +107,9 @@ public class WordCloudRowSetListener implements RowsSetListener {
 	 * @param network The network that the node belongs to, used to retrieve attributes
 	 * @return
 	 */
-	private List<String> getWords(CyNode node, CyNetwork network) {
-		// TODO: Split strings into individual words, then add the words
+	private List<String> getWords(CyNode node, CyNetwork network, 
+			WordTokenizer wordTokenizer, 
+			Map<CyNetwork, Collection<String>> excludedColumnsMap) {
 		
 		List<String> words = new LinkedList<String>();
 		
@@ -126,31 +118,53 @@ public class WordCloudRowSetListener implements RowsSetListener {
 		Map<String, Object> rowValues = correspondingRow.getAllValues();
 		//System.out.println("getWords() call, getAllValues: " + correspondingRow.getAllValues());
 		
-		for (Object value : rowValues.values()) {
-			if (value instanceof String) {
-				// Split the string based on punctuation and spaces, then add the individual words
-				words.add((String) value);
-			} else if (value instanceof List) {
-				
-				List<?> list = (List<?>) value;
-				
-				for (Object listObject : list) {
-					if (listObject instanceof String) {
-						// Split the string based on punctuation and spaces, then add the individual words
+		Collection<String> excludedColumns = excludedColumnsMap.get(network);
+
+// testing
+//		excludedColumns = new LinkedList<String>();
+//		excludedColumns.add("test2");
+		
+		for (Entry<String, Object> entry : rowValues.entrySet()) {
+			
+			String columnName = entry.getKey();
+			Object value = entry.getValue();
+			
+			boolean columnIsExcluded = false;
+			
+			// Skip this column if it was excluded
+			if (excludedColumns != null) {
+				for (String excludedColumn : excludedColumns) {
+					
+					if (excludedColumn.equals(columnName)) {
 						
-						words.add((String) listObject);
+						columnIsExcluded = true;
+					}
+				}
+			}
+			
+			if (!columnIsExcluded) {
+				if (value instanceof String) {
+					// Split the string based on punctuation and spaces, then add the individual words
+					Collection<String> splitWords = wordTokenizer.tokenize((String) value);
+	
+					words.addAll(splitWords);
+					
+				} else if (value instanceof List) {
+					
+					List<?> list = (List<?>) value;
+					
+					for (Object listObject : list) {
+						if (listObject instanceof String) {
+							// Split the string based on punctuation and spaces, then add the individual words
+							Collection<String> splitWords = wordTokenizer.tokenize((String) value);
+	
+							words.addAll(splitWords);
+						}
 					}
 				}
 			}
 		}
 		
 		return words;
-	}
-
-	
-	private Collection<String> splitStringToWords(String text) {
-//		List<String>
-		
-		return null;
 	}
 }

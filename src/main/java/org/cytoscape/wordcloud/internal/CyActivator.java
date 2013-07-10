@@ -29,7 +29,7 @@ public class CyActivator extends AbstractCyActivator {
 		WordCloudSettingsHolder wordCloudSettings = new WordCloudSettingsHolder();
 		
 		// Create the word cloud settings dialog
-		WordCloudSettingsDialog wordCloudSettingsDialog = new WordCloudSettingsDialog(cySwingApplication.getJFrame(), wordCloudSettings);
+		WordCloudSettingsDialog wordCloudSettingsDialog = new WordCloudSettingsDialog(cySwingApplication.getJFrame(), wordCloudSettings, cySwingApplication);
 		
 		// Create the word cloud dialog
 		WordCloudDialog wordCloudDialog = new WordCloudDialog(cySwingApplication.getJFrame(), 
