@@ -84,7 +84,7 @@ public class WordCloudRowSetListener implements RowsSetListener {
 		for (CyNode node : nodes) {
 			List<String> nodeWords = this.getWords(node, network,
 					this.wordCloudSettings.getWordTokenizer(),
-					this.wordCloudSettings.getExcludedColumns());
+					this.wordCloudSettings.getExcludedColumnsMap());
 			
 			for (String word : nodeWords) {
 				if (wordCounts.get(word) == null) {
@@ -109,7 +109,7 @@ public class WordCloudRowSetListener implements RowsSetListener {
 	 */
 	private List<String> getWords(CyNode node, CyNetwork network, 
 			WordTokenizer wordTokenizer, 
-			Collection<String> excludedColumns) {
+			Map<CyNetwork, Collection<String>> excludedColumnsMap) {
 		
 		List<String> words = new LinkedList<String>();
 		
@@ -118,7 +118,7 @@ public class WordCloudRowSetListener implements RowsSetListener {
 		Map<String, Object> rowValues = correspondingRow.getAllValues();
 		//System.out.println("getWords() call, getAllValues: " + correspondingRow.getAllValues());
 		
-//		Collection<String> excludedColumns = excludedColumnsMap.get(network);
+		Collection<String> excludedColumns = excludedColumnsMap.get(network);
 
 // testing
 //		excludedColumns = new LinkedList<String>();
@@ -156,7 +156,7 @@ public class WordCloudRowSetListener implements RowsSetListener {
 					for (Object listObject : list) {
 						if (listObject instanceof String) {
 							// Split the string based on punctuation and spaces, then add the individual words
-							Collection<String> splitWords = wordTokenizer.tokenize((String) value);
+							Collection<String> splitWords = wordTokenizer.tokenize((String) listObject);
 	
 							words.addAll(splitWords);
 						}

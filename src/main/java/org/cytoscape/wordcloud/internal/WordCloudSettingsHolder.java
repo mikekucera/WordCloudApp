@@ -27,6 +27,8 @@ public class WordCloudSettingsHolder {
 	// List of excluded column names
 	private Collection<String> excludedColumns = new LinkedList<String>();
 	
+	private Map<CyNetwork, Collection<String>> excludedColumnsMap = new HashMap<CyNetwork, Collection<String>>();
+	
 	public int getMaxWordCount() {
 		return this.maxWordCount;
 	}
@@ -51,6 +53,10 @@ public class WordCloudSettingsHolder {
 		return this.excludedColumns;
 	}
 	
+	public Map<CyNetwork, Collection<String>> getExcludedColumnsMap() {
+		return this.excludedColumnsMap;
+	}
+	
 	public void setMaxWordCount(int maxWordCount) {
 		this.maxWordCount = maxWordCount;
 	}
@@ -69,5 +75,9 @@ public class WordCloudSettingsHolder {
 	
 	public void setWordShortener(WordShortener wordShortener) {
 		this.wordShortener = wordShortener;
+	}
+	
+	public void setExcludedColumnsMap(Map<CyNetwork, Collection<String>> excludedColumnsMap) {
+		this.excludedColumnsMap = excludedColumnsMap;
 	}
 }

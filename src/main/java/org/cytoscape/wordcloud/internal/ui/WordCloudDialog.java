@@ -10,6 +10,8 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+import org.cytoscape.application.CyApplicationConfiguration;
+import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.wordcloud.internal.WordCloudSettingsHolder;
 import org.cytoscape.wordcloud.internal.swing.WrapLayout;
@@ -20,6 +22,7 @@ public class WordCloudDialog extends JDialog {
 	
 	private WordCloudSettingsDialog wordCloudSettingsDialog;
 	private CySwingApplication cySwingApplication;
+	private CyApplicationManager cyApplicationManager;
 	
 	javax.swing.JButton settingsButton;
     javax.swing.JPanel wordCloudPanel;
@@ -28,13 +31,17 @@ public class WordCloudDialog extends JDialog {
     // Used to position the dialog for the first time it is shown
     private boolean firstTimeShown = true;
 	
-	public WordCloudDialog(JFrame owner, WordCloudSettingsDialog wordCloudSettingsDialog, CySwingApplication cySwingApplication) {
+	public WordCloudDialog(JFrame owner, 
+			WordCloudSettingsDialog wordCloudSettingsDialog, 
+			CySwingApplication cySwingApplication,
+			CyApplicationManager cyApplicationManager) {
 		super(owner);
 		
 		initComponents();
 		
 		this.wordCloudSettingsDialog = wordCloudSettingsDialog;
 		this.cySwingApplication = cySwingApplication;
+		this.cyApplicationManager = cyApplicationManager;
 		
 		this.setSize(450, 450);
 	}
@@ -114,6 +121,7 @@ public class WordCloudDialog extends JDialog {
 			this.wordCloudSettingsDialog.setFirstTimeShown(false);
 		}
 		
+		this.wordCloudSettingsDialog.updateIncludedColumns(cyApplicationManager);
 		this.wordCloudSettingsDialog.setVisible(true);
     }
 	

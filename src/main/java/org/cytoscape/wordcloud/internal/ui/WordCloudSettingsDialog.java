@@ -12,6 +12,11 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -34,7 +39,9 @@ import javax.swing.event.ListSelectionListener;
 
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
+import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyTable;
 import org.cytoscape.util.swing.CheckBoxJList;
 import org.cytoscape.wordcloud.internal.WordCloudSettingsHolder;
 import org.cytoscape.wordcloud.internal.ui.old.CollapsiblePanel;
@@ -57,6 +64,7 @@ public class WordCloudSettingsDialog extends JDialog {
     private javax.swing.JScrollPane settingsScrollPane;
 	
     private CySwingApplication cySwingApplication;
+    private CyApplicationManager cyApplicationManager;
     
  // Used to position the dialog for the first time it is shown
     private boolean firstTimeShown = true;
@@ -83,11 +91,12 @@ public class WordCloudSettingsDialog extends JDialog {
 	private JButton createNetworkButton;
 	private JButton saveCloudButton;
 	
-	public WordCloudSettingsDialog(JFrame owner, WordCloudSettingsHolder wordCloudSettings, CySwingApplication cySwingApplication) {
+	public WordCloudSettingsDialog(JFrame owner, WordCloudSettingsHolder wordCloudSettings, CySwingApplication cySwingApplication, CyApplicationManager cyApplicationManager) {
 		super(owner, false);
 		 
 		this.wordCloudSettingsHolder = wordCloudSettings;
 		this.cySwingApplication = cySwingApplication;
+		this.cyApplicationManager = cyApplicationManager;
 		 
 	    initComponents();
 	    
@@ -269,7 +278,10 @@ public class WordCloudSettingsDialog extends JDialog {
 	    attributeList.addListSelectionListener(new ListSelectionListener()
 	    {
 			public void valueChanged(ListSelectionEvent e) {
-				updateAttNames();
+				// updateAttNames();
+				if (!e.getValueIsAdjusting()) {
+					applyIncludedColumnSettings();
+				}
 			}
 	    });
 	    
@@ -335,14 +347,103 @@ public class WordCloudSettingsDialog extends JDialog {
 	 */
 	public void updateIncludedColumns(CyApplicationManager cyApplicationManager) {
 		
+		DefaultListModel listModel = new DefaultListModel();
 		
+		CyNetwork currentNetwork = cyApplicationManager.getCurrentNetwork();
 		
-		DefaultListModel listModel = (DefaultListModel) attributeList.getModel();
-//		listModel.
+		CyTable defaultNodeTable = currentNetwork.getDefaultNodeTable();
 		
-//		attributeList.
+		Map<CyNetwork, Collection<String>> excludedColumnsMap = this.wordCloudSettingsHolder.getExcludedColumnsMap();
+		Collection<String> excludedColumns = excludedColumnsMap.get(cyApplicationManager.getCurrentNetwork());
+//		System.out.println("excluded columns: " + excludedColumns);
+		
+		Collection<String> excludedColumnSet = new HashSet<String>();
+		
+		if (excludedColumns != null) {
+			excludedColumnSet.addAll(excludedColumns);
+		}
+		
+		Collection<Integer> selectedIndicesCollection = new HashSet<Integer>();
+		
+		Collection<CyColumn> columns = defaultNodeTable.getColumns();
+		
+		List<String> selectedColumnNames = new LinkedList<String>();
+	//	int currentIndex = 0;
+		for (CyColumn column : columns) {
+			
+			// Only consider the column if it contains data of type String or List<String>
+			if (column.getType() == String.class || column.getListElementType() == String.class) {
+				listModel.addElement(column.getName());
+				
+				/*
+				// If this column is not an excluded columns, add its index to the set of selected indices
+				boolean excludedColumnSetContains = false;
+				
+				for (String excludedColumn : excludedColumnSet) {
+					System.out.println("!Excluded column: " + excludedColumn);
+				}
+				*/
+				
+				if (!excludedColumnSet.contains(column.getName())) {
+					selectedColumnNames.add(column.getName());
+				}
+				
+			}
+			
+	//		currentIndex++;
+		}
+
+		attributeList.setModel(listModel);
+		attributeList.setSelectedItems(selectedColumnNames);
 		
 		updateAttNames();
+	}
+	
+	/**
+	 * Needs to be called when the columns selection list changes
+	 */
+	private void applyIncludedColumnSettings() {
+		// Map<String, Boolean> columnStates = new HashMap<String, Boolean>();
+		
+		// Get selected column indices
+		int[] selectedIndices = attributeList.getSelectedIndices();
+	
+		HashSet<Integer> selectedIndicesSet = new HashSet<Integer>();
+		
+		for (int i = 0; i < selectedIndices.length; i++) {
+			selectedIndicesSet.add(selectedIndices[i]);
+		}
+		
+		/*
+		for (Integer selectedIndex : selectedIndex) {
+			columnStates.put(attriButesList., value)
+		}
+		*/
+		
+		// Get unselected column indices
+		DefaultListModel listModel = (DefaultListModel) attributeList.getModel();
+
+		HashSet<Integer> unselectedIndicesSet = new HashSet<Integer>();
+		
+		for (int i = 0; i < listModel.getSize(); i++) {
+			if (!selectedIndicesSet.contains(i)) {
+				unselectedIndicesSet.add(i);
+			}
+		}
+		
+		// Get unselected column names
+		
+		HashSet<String> excludedColumns = new HashSet<String>();
+		
+		for (Integer unselectedIndex : unselectedIndicesSet) {
+			excludedColumns.add((String) listModel.get(unselectedIndex));
+	//		System.out.println("unselected index: " + (String) listModel.get(unselectedIndex));
+		}
+		
+		// Get the Map for the network
+		CyNetwork currentNetwork = this.cyApplicationManager.getCurrentNetwork();
+//		System.out.println("put excluded columns: " + excludedColumns);
+		this.wordCloudSettingsHolder.getExcludedColumnsMap().put(currentNetwork, excludedColumns);
 	}
 	
 	private void updateAttNames()
