@@ -20,7 +20,7 @@ File: CollapsiblePanel.java
  along with this project.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.cytoscape.wordcloud.internal.ui;
+package org.cytoscape.wordcloud.internal.ui.old;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -179,7 +179,7 @@ public class CollapsiblePanel extends JPanel {
         ImageIcon[] iconArrow = new ImageIcon[2];
         URL iconURL;
         iconURL = CollapsiblePanel.class.getResource("/collapsiblePanel/arrow_collapsed.gif");
-        System.out.println(iconURL);
+        
         if (iconURL != null) {
             iconArrow[COLLAPSED] = new ImageIcon(iconURL);
         }

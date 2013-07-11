@@ -84,7 +84,7 @@ public class WordCloudRowSetListener implements RowsSetListener {
 		for (CyNode node : nodes) {
 			List<String> nodeWords = this.getWords(node, network,
 					this.wordCloudSettings.getWordTokenizer(),
-					this.wordCloudSettings.getExcludedColumnsMap());
+					this.wordCloudSettings.getExcludedColumns());
 			
 			for (String word : nodeWords) {
 				if (wordCounts.get(word) == null) {
@@ -109,7 +109,7 @@ public class WordCloudRowSetListener implements RowsSetListener {
 	 */
 	private List<String> getWords(CyNode node, CyNetwork network, 
 			WordTokenizer wordTokenizer, 
-			Map<CyNetwork, Collection<String>> excludedColumnsMap) {
+			Collection<String> excludedColumns) {
 		
 		List<String> words = new LinkedList<String>();
 		
@@ -118,7 +118,7 @@ public class WordCloudRowSetListener implements RowsSetListener {
 		Map<String, Object> rowValues = correspondingRow.getAllValues();
 		//System.out.println("getWords() call, getAllValues: " + correspondingRow.getAllValues());
 		
-		Collection<String> excludedColumns = excludedColumnsMap.get(network);
+//		Collection<String> excludedColumns = excludedColumnsMap.get(network);
 
 // testing
 //		excludedColumns = new LinkedList<String>();

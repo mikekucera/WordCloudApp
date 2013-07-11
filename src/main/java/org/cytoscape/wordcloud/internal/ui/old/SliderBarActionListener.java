@@ -20,11 +20,12 @@
  along with this project.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.cytoscape.wordcloud.internal.ui;
+package org.cytoscape.wordcloud.internal.ui.old;
 
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.*;
+
 
 
 public class SliderBarActionListener implements ChangeListener {

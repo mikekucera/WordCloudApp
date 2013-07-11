@@ -2,6 +2,7 @@ package org.cytoscape.wordcloud.internal;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 import org.cytoscape.model.CyNetwork;
@@ -23,8 +24,8 @@ public class WordCloudSettingsHolder {
 	// Word Cloud word shortener
 	private WordShortener wordShortener = new WordShortener();
 	
-	// Map from network to collection of column names
-	private Map<CyNetwork, Collection<String>> excludedColumnsMap = new HashMap<CyNetwork, Collection<String>>();
+	// List of excluded column names
+	private Collection<String> excludedColumns = new LinkedList<String>();
 	
 	public int getMaxWordCount() {
 		return this.maxWordCount;
@@ -46,8 +47,8 @@ public class WordCloudSettingsHolder {
 		return this.wordShortener;
 	}
 	
-	public Map<CyNetwork, Collection<String>> getExcludedColumnsMap() {
-		return this.excludedColumnsMap;
+	public Collection<String> getExcludedColumns() {
+		return this.excludedColumns;
 	}
 	
 	public void setMaxWordCount(int maxWordCount) {

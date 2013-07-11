@@ -6,12 +6,15 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Vector;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -27,25 +30,24 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.ListModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
-import org.cytoscape.model.CyNetwork;
 import org.cytoscape.util.swing.CheckBoxJList;
-import org.cytoscape.wordcloud.internal.WordCloudSettingsHolder;
+
+
 import org.cytoscape.wordcloud.internal.ui.old.CollapsiblePanel;
 import org.cytoscape.wordcloud.internal.ui.old.ModifiedFlowLayout;
 import org.cytoscape.wordcloud.internal.ui.old.SliderBarPanel;
 import org.cytoscape.wordcloud.internal.ui.old.WidestStringComboBoxModel;
 import org.cytoscape.wordcloud.internal.ui.old.WidestStringComboBoxPopupMenuListener;
+import org.cytoscape.wordcloud.internal.WordCloudSettingsHolder;
 
-public class WordCloudSettingsDialog extends JDialog {
+public class WordCloudSettingsDialogOld extends JDialog {
 	
-	private WordCloudSettingsHolder wordCloudSettingsHolder;
+	private WordCloudSettingsHolder wordCloudSettings;
 	
 	private DecimalFormat decFormat; //used in formatted text fields with decimals
 	private NumberFormat intFormat; //used in formatted text fields with integers
@@ -82,11 +84,11 @@ public class WordCloudSettingsDialog extends JDialog {
 	private JComboBox cmbStyle;
 	private JButton createNetworkButton;
 	private JButton saveCloudButton;
-	
-	public WordCloudSettingsDialog(JFrame owner, WordCloudSettingsHolder wordCloudSettings, CySwingApplication cySwingApplication) {
+    
+	public WordCloudSettingsDialogOld(JFrame owner, WordCloudSettingsHolder wordCloudSettings, CySwingApplication cySwingApplication) {
 		super(owner, false);
 		 
-		this.wordCloudSettingsHolder = wordCloudSettings;
+		this.wordCloudSettings = wordCloudSettings;
 		this.cySwingApplication = cySwingApplication;
 		 
 	    initComponents();
@@ -269,7 +271,7 @@ public class WordCloudSettingsDialog extends JDialog {
 	    attributeList.addListSelectionListener(new ListSelectionListener()
 	    {
 			public void valueChanged(ListSelectionEvent e) {
-				updateAttNames();
+				//TODO updateAttNames();
 			}
 	    });
 	    
@@ -331,43 +333,6 @@ public class WordCloudSettingsDialog extends JDialog {
 	}
 	
 	/**
-	 * Needs to be called before dialog is shown to update the column list
-	 */
-	public void updateIncludedColumns(CyApplicationManager cyApplicationManager) {
-		
-		
-		
-		DefaultListModel listModel = (DefaultListModel) attributeList.getModel();
-//		listModel.
-		
-//		attributeList.
-		
-		updateAttNames();
-	}
-	
-	private void updateAttNames()
-	{
-		String nameList = "";
-		if (!attributeList.isSelectionEmpty())
-		{
-			Object[] names = attributeList.getSelectedValues();
-			for (int i = 0; i < names.length; i++)
-			{
-				if (names[i] instanceof String)
-				{
-					String curName = (String)names[i];
-				
-					if (i != names.length - 1 )
-						nameList = nameList + curName + "\n";
-					else
-						nameList = nameList + curName;
-				}
-			}
-		}
-		attNames.setText(nameList);
-	}
-	
-	/**
 	 * Creates a CollapsiblePanel that holds the display settings information.
 	 * @return CollapsiblePanel - display settings panel interface.
 	 */
@@ -382,7 +347,7 @@ public class WordCloudSettingsDialog extends JDialog {
 		JLabel maxWordsLabel = new JLabel("Max Number of Words");
 		maxWordsTextField = new JFormattedTextField(intFormat);
 		maxWordsTextField.setColumns(10);
-		maxWordsTextField.setValue(this.wordCloudSettingsHolder.getMaxWordCount()); //Set to default initially
+		maxWordsTextField.setValue(this.wordCloudSettings.getMaxWordCount()); //Set to default initially
 		maxWordsTextField.addPropertyChangeListener(new FormattedTextFieldAction());
 		
 		StringBuffer buf = new StringBuffer();
@@ -930,7 +895,7 @@ public class WordCloudSettingsDialog extends JDialog {
 				}
 				else
 				{
-					Integer defaultMaxWords = wordCloudSettingsHolder.getMaxWordCount();
+					Integer defaultMaxWords = wordCloudSettings.getMaxWordCount();
 					maxWordsTextField.setValue(defaultMaxWords);
 					message += "The maximum number of words to display must be greater than or equal to 0.";
 					invalid = true;

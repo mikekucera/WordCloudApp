@@ -20,7 +20,7 @@
  along with this project.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.cytoscape.wordcloud.internal.ui;
+package org.cytoscape.wordcloud.internal.ui.old;
 
 import javax.swing.*;
 
