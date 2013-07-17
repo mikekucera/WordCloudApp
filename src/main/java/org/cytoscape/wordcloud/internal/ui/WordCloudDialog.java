@@ -1,8 +1,13 @@
 package org.cytoscape.wordcloud.internal.ui;
 
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -13,8 +18,13 @@ import javax.swing.JLabel;
 import org.cytoscape.application.CyApplicationConfiguration;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
+import org.cytoscape.event.CyEventHelper;
+import org.cytoscape.model.CyNode;
+import org.cytoscape.view.model.CyNetworkViewManager;
+import org.cytoscape.wordcloud.internal.RowSetListenerToggle;
 import org.cytoscape.wordcloud.internal.WordCloudSettingsHolder;
 import org.cytoscape.wordcloud.internal.swing.WrapLayout;
+import org.cytoscape.wordcloud.internal.util.WordCloudUtility;
 
 public class WordCloudDialog extends JDialog {
 
@@ -23,6 +33,8 @@ public class WordCloudDialog extends JDialog {
 	private WordCloudSettingsDialog wordCloudSettingsDialog;
 	private CySwingApplication cySwingApplication;
 	private CyApplicationManager cyApplicationManager;
+	private CyEventHelper cyEventHelper;
+	private CyNetworkViewManager cyNetworkViewManager;
 	
 	javax.swing.JButton settingsButton;
     javax.swing.JPanel wordCloudPanel;
@@ -30,11 +42,13 @@ public class WordCloudDialog extends JDialog {
     
     // Used to position the dialog for the first time it is shown
     private boolean firstTimeShown = true;
-	
+
 	public WordCloudDialog(JFrame owner, 
 			WordCloudSettingsDialog wordCloudSettingsDialog, 
 			CySwingApplication cySwingApplication,
-			CyApplicationManager cyApplicationManager) {
+			CyApplicationManager cyApplicationManager,
+			CyEventHelper cyEventHelper,
+			CyNetworkViewManager cyNetworkViewManager) {
 		super(owner);
 		
 		initComponents();
@@ -42,6 +56,8 @@ public class WordCloudDialog extends JDialog {
 		this.wordCloudSettingsDialog = wordCloudSettingsDialog;
 		this.cySwingApplication = cySwingApplication;
 		this.cyApplicationManager = cyApplicationManager;
+		this.cyEventHelper = cyEventHelper;
+		this.cyNetworkViewManager = cyNetworkViewManager;
 		
 		this.setSize(450, 450);
 	}
@@ -125,11 +141,17 @@ public class WordCloudDialog extends JDialog {
 		this.wordCloudSettingsDialog.setVisible(true);
     }
 	
-	public void populateWordCloud(Map<String, Integer> wordCounts, WordCloudSettingsHolder wordCloudSettings) {
-		if (!this.isVisible()) {
-			// Word cloud updated while not visible
-			return;
-		}
+	/**
+	 * Populate the word cloud
+	 * @param wordCounts The word counts used to get words and their font sizes
+	 * @param wordCloudSettings The settings used to adjust output
+	 * @param nodesPerWordMap The nodes per word map used for the 'click on word to get selection of containing nodes' 
+	 * feature
+	 */
+	public void populateWordCloud(
+			Map<String, Integer> wordCounts, 
+			WordCloudSettingsHolder wordCloudSettings,
+			Map<String, Collection<CyNode>> nodesPerWordMap) {
 		
 		this.wordCloudPanel.removeAll();
 		this.wordCloudPanel.setLayout(new WrapLayout());
@@ -168,6 +190,10 @@ public class WordCloudDialog extends JDialog {
 			Font font = new Font(defaultLabelFont.getFontName(), defaultLabelFont.getStyle(), fontSize);
 			
 			label.setFont(font);
+			label.addMouseListener(new WordCloudLabelMouseListener(label, nodesPerWordMap, 
+					this.cyApplicationManager,
+					this.cyEventHelper,
+					this.cyNetworkViewManager));
 			
 			this.wordCloudPanel.add(label);
 		}
@@ -175,6 +201,65 @@ public class WordCloudDialog extends JDialog {
 		// this.pack();
 		this.wordCloudScrollPane.validate();
 		this.wordCloudScrollPane.repaint();
+	}
+	
+	private class WordCloudLabelMouseListener implements MouseListener {
+
+		private JLabel label;
+		private Map<String, Collection<CyNode>> nodesPerWordMap;
+		
+		private CyApplicationManager cyApplicationManager;
+		private CyEventHelper cyEventHelper;
+		private CyNetworkViewManager cyNetworkViewManager;
+		
+		public WordCloudLabelMouseListener(
+				JLabel label,
+				Map<String, Collection<CyNode>> nodesPerWordMap,
+				CyApplicationManager cyApplicationManager,
+				CyEventHelper cyEventHelper,
+				CyNetworkViewManager cyNetworkViewManager) {
+			
+			this.label = label;
+			this.nodesPerWordMap = nodesPerWordMap;
+			
+			this.cyApplicationManager = cyApplicationManager;
+			this.cyEventHelper = cyEventHelper;
+			this.cyNetworkViewManager = cyNetworkViewManager;
+		}
+		
+		@Override
+		public void mouseClicked(MouseEvent arg0) {
+			RowSetListenerToggle.getInstance().stopListening(200);
+			
+			Collection<CyNode> nodesForWord = this.nodesPerWordMap.get(label.getText());
+			
+			WordCloudUtility.setNodeSelection(
+					nodesForWord, 
+					this.cyApplicationManager.getCurrentNetwork(), 
+					this.cyEventHelper,
+					this.cyNetworkViewManager);
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent arg0) {
+			
+			label.setForeground(new Color(0,200,255));
+		}
+
+		@Override
+		public void mouseExited(MouseEvent arg0) {
+			
+			label.setForeground(Color.BLACK);
+		}
+
+		@Override
+		public void mousePressed(MouseEvent arg0) {
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent arg0) {
+		}
+		
 	}
 	
 	public void clearWordCloud() {

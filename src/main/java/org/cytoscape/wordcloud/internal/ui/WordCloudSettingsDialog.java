@@ -2,6 +2,7 @@ package org.cytoscape.wordcloud.internal.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -269,7 +270,8 @@ public class WordCloudSettingsDialog extends JDialog {
 		
 		
 		JPanel attributePanel = new JPanel();
-		attributePanel.setLayout(new GridBagLayout());
+		//attributePanel.setLayout(new GridBagLayout());
+		attributePanel.setLayout(new BorderLayout());
 
 	    //Testing of stuff
 	    attributeList = new CheckBoxJList();
@@ -292,7 +294,7 @@ public class WordCloudSettingsDialog extends JDialog {
 	    attributeSelectionPopupMenu = new JPopupMenu();
 	    attributeSelectionPopupMenu.add(scrollPane);
 	    
-	    JButton attributeButton = new JButton("Edit");
+	    JButton attributeButton = new JButton("Edit Columns");
 	    attributeButton.setToolTipText("Edit node attribute table columns to use for semantic analysis");
 	    attributeButton.addMouseListener(new MouseAdapter()
 	    {
@@ -313,27 +315,33 @@ public class WordCloudSettingsDialog extends JDialog {
 	    attListPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 	    attListPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
-	    JLabel attributeLabel = new JLabel("Current Values:");
+	    JLabel attributeLabel = new JLabel("Edit and display selected columns:");
 		
 		GridBagConstraints gridBagConstraints = new GridBagConstraints();
 		gridBagConstraints.gridx = 0;
 		gridBagConstraints.gridy = 0;
 		gridBagConstraints.insets = new Insets(5, 0, 0, 0);
-		attributePanel.add(attributeLabel, gridBagConstraints);
+		gridBagConstraints.anchor = GridBagConstraints.LINE_START;
+		//attributePanel.add(attributeLabel, gridBagConstraints);
+		attributePanel.add(attributeLabel, BorderLayout.WEST);
 		
 		gridBagConstraints.gridx = 1;
 		gridBagConstraints.gridy = 0;
 		gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
 		gridBagConstraints.weightx = 1.0;
 		gridBagConstraints.insets = new Insets(5, 10, 0, 0);
-		attributePanel.add(attListPane, gridBagConstraints);	
+		//attributePanel.add(attListPane, gridBagConstraints);	
+		//attributePanel.add(attListPane);
 		
 		gridBagConstraints = new GridBagConstraints();
-		gridBagConstraints.gridx = 2;
+		gridBagConstraints.gridx = 1;
 		gridBagConstraints.gridy = 0;
 		gridBagConstraints.insets = new Insets(5, 10, 0, 0);
-		attributePanel.add(attributeButton, gridBagConstraints);
-		    
+		gridBagConstraints.anchor = GridBagConstraints.LINE_START;
+		gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+		//attributePanel.add(attributeButton, gridBagConstraints);
+		attributePanel.add(attributeButton, BorderLayout.EAST); 
+		
 	    //TODO refreshAttributeCMB();
 		
 		panel.add(attributePanel);
