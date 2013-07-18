@@ -13,6 +13,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -35,8 +36,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ListModel;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.Document;
 
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
@@ -350,10 +354,20 @@ public class WordCloudSettingsDialog extends JDialog {
 		return collapsiblePanel;
 	}
 	
+	public void updateToSettings() {
+		this.updateIncludedColumns();
+
+		this.updateMaxWordsTextField();
+	}
+	
+	private void updateMaxWordsTextField() {
+		maxWordsTextField.setValue(this.wordCloudSettingsHolder.getMaxWordCount());
+	}
+	
 	/**
 	 * Needs to be called before dialog is shown to update the column list
 	 */
-	public void updateIncludedColumns(CyApplicationManager cyApplicationManager) {
+	private void updateIncludedColumns() {
 		
 		DefaultListModel listModel = new DefaultListModel();
 		
@@ -492,7 +506,8 @@ public class WordCloudSettingsDialog extends JDialog {
 		maxWordsTextField = new JFormattedTextField(intFormat);
 		maxWordsTextField.setColumns(10);
 		maxWordsTextField.setValue(this.wordCloudSettingsHolder.getMaxWordCount()); //Set to default initially
-		maxWordsTextField.addPropertyChangeListener(new FormattedTextFieldAction());
+//		maxWordsTextField.addPropertyChangeListener(new FormattedTextFieldAction());
+		maxWordsTextField.getDocument().addDocumentListener(new FormattedTextFieldAction());
 		
 		StringBuffer buf = new StringBuffer();
 		buf.append("<html>" + "Sets a limit on the number of words to display in the cloud" + "<br>");
@@ -1019,23 +1034,55 @@ public class WordCloudSettingsDialog extends JDialog {
 	/**
 	 * Private Class to ensure that text fields are being set properly
 	 */
-	private class FormattedTextFieldAction implements PropertyChangeListener
+	private class FormattedTextFieldAction implements PropertyChangeListener, DocumentListener
 	{
+		@Override
+		public void changedUpdate(DocumentEvent e) {
+			Document source = e.getDocument();
+			
+			this.respondToChange(source);
+		}
+
+		@Override
+		public void insertUpdate(DocumentEvent e) {
+			Document source = e.getDocument();
+			
+			this.respondToChange(source);
+		}
+
+		@Override
+		public void removeUpdate(DocumentEvent e) {
+			Document source = e.getDocument();
+			
+			this.respondToChange(source);
+		}
+		
 		public void propertyChange(PropertyChangeEvent e)
 		{
 			JFormattedTextField source = (JFormattedTextField) e.getSource();
 			
+			this.respondToChange(source.getDocument());
+		}
+
+		private void respondToChange(Document source) {
 			String message = "The value you have entered is invalid. \n";
 			boolean invalid = false;
 
-			
 			//Max Words
-			if (source == maxWordsTextField)
+			if (source == maxWordsTextField.getDocument())
 			{
+				try {
+					maxWordsTextField.commitEdit();
+				} catch (ParseException e) {
+				}
+				
 				Number value = (Number) maxWordsTextField.getValue();
 				if ((value != null) && (value.intValue() >= 0))
 				{
-					//All is well - do nothing
+					//All is well
+					wordCloudSettingsHolder.setMaxWordCount(value.intValue());
+					
+					System.out.println("Updated settings to " + value.intValue());
 				}
 				else
 				{
@@ -1046,7 +1093,7 @@ public class WordCloudSettingsDialog extends JDialog {
 				}
 			}// end max Words
 			
-			else if (source == clusterCutoffTextField)
+			else if (source == clusterCutoffTextField.getDocument())
 			{
 				Number value = (Number) clusterCutoffTextField.getValue();
 				if ((value != null) && (value.doubleValue() >= 0.0))
@@ -1062,7 +1109,7 @@ public class WordCloudSettingsDialog extends JDialog {
 				}
 			}
 			
-			else if (source == addWordTextField)
+			else if (source == addWordTextField.getDocument())
 			{
 				String value = (String)addWordTextField.getText();
 				if (value.equals("") || value.matches("[\\w]*"))

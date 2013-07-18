@@ -41,6 +41,14 @@ public class ShowWordCloudAction extends AbstractCyAction {
 		}
 		
 		this.wordCloudDialog = wordCloudDialog;
+		
+		this.wordCloudSettingsHolder.addSettingsChangedListener(new SettingsChangeListener() {
+			
+			@Override
+			public void settingsChanged(WordCloudSettingsHolder wordCloudSettingsHolder) {
+				updateWordCloud();
+			}
+		});
 	}
 
 	@Override
@@ -59,7 +67,12 @@ public class ShowWordCloudAction extends AbstractCyAction {
 		}
 		
 		// Update the word cloud
+		updateWordCloud();
 		
+		this.wordCloudDialog.setVisible(true);
+	}
+	
+	private void updateWordCloud() {
 		List<CyNode> selectedNodes = WordCloudUtility.fetchSelectedNodes(this.cyApplicationManager.getCurrentNetwork());
 		
 		// Notes:
@@ -80,7 +93,5 @@ public class ShowWordCloudAction extends AbstractCyAction {
 		} else {
 			this.wordCloudDialog.clearWordCloud();
 		}
-		
-		this.wordCloudDialog.setVisible(true);
 	}
 }

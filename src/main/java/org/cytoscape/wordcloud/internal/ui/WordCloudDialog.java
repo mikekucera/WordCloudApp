@@ -7,7 +7,10 @@ import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -137,7 +140,7 @@ public class WordCloudDialog extends JDialog {
 			this.wordCloudSettingsDialog.setFirstTimeShown(false);
 		}
 		
-		this.wordCloudSettingsDialog.updateIncludedColumns(cyApplicationManager);
+		this.wordCloudSettingsDialog.updateToSettings();
 		this.wordCloudSettingsDialog.setVisible(true);
     }
 	
@@ -175,7 +178,28 @@ public class WordCloudDialog extends JDialog {
 			}
 		}
 		
-		for (Entry<String, Integer> entry : wordCounts.entrySet()) {
+		ArrayList<Entry<String, Integer>> wordCountEntryArray = new ArrayList<Entry<String, Integer>>();
+		wordCountEntryArray.addAll(wordCounts.entrySet());
+		Collections.sort(wordCountEntryArray, new Comparator<Object>() {
+
+			@Override
+			public int compare(Object first, Object second) {
+				int firstCount = ((Entry<String, Integer>) first).getValue();
+				int secondCount = ((Entry<String, Integer>) second).getValue();
+			
+				return secondCount - firstCount;
+			}
+			
+		});
+		
+		int maxWordCount = wordCloudSettings.getMaxWordCount();
+		
+		for (int i = 0; i < maxWordCount; i++) {
+			if (i >= wordCountEntryArray.size()) {
+				break;
+			}
+			
+			Entry<String, Integer> entry = wordCountEntryArray.get(i);
 			String word = entry.getKey();
 			int count = entry.getValue();
 			
