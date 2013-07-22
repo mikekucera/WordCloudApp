@@ -153,6 +153,7 @@ public class WordCloudDialog extends JDialog {
 	 */
 	public void populateWordCloud(
 			Map<String, Integer> wordCounts, 
+			Map<String, Integer> networkWordCounts,
 			WordCloudSettingsHolder wordCloudSettings,
 			Map<String, Collection<CyNode>> nodesPerWordMap) {
 		
@@ -194,6 +195,13 @@ public class WordCloudDialog extends JDialog {
 		
 		int maxWordCount = wordCloudSettings.getMaxWordCount();
 		
+		
+		// If we're using normalization, calculate font size-related values for each word
+		Map<String, >
+		if (wordCloudSettings.isUsingNormalization()) {
+			
+		}
+		
 		for (int i = 0; i < maxWordCount; i++) {
 			if (i >= wordCountEntryArray.size()) {
 				break;
@@ -203,9 +211,16 @@ public class WordCloudDialog extends JDialog {
 			String word = entry.getKey();
 			int count = entry.getValue();
 			
-			int fontSize = calculateFontSize(count, minAppearCount, maxAppearCount,
-					wordCloudSettings.getMinWordCloudFontSize(),
-					wordCloudSettings.getMaxWordCloudFontSize());
+			
+			int fontSize;
+			
+			if (wordCloudSettings.isUsingNormalization()) {
+				
+			} else {
+				fontSize = calculateFontSize(count, minAppearCount, maxAppearCount,
+						wordCloudSettings.getMinWordCloudFontSize(),
+						wordCloudSettings.getMaxWordCloudFontSize());
+			}
 			
 			// Shorten the word if necessary
 			JLabel label = new JLabel(wordCloudSettings.getWordShortener().shortenWord(word));
@@ -304,5 +319,15 @@ public class WordCloudDialog extends JDialog {
 					(appearCount - minAppearCount) / (1.0 * maxAppearCount - minAppearCount) 
 					* (maxFontSize - minFontSize) + minFontSize
 				);
+	}
+	
+	private double calculateNormalizedFontSizeValue(
+			int selectedCount,
+			int selectedTotal, 
+			int networkCount,
+			int networkTotal,
+			double normalizationCoefficient) {
+		
+		return (1.0 * selectedCount / selectedTotal) / Math.pow(1.0 * networkCount / networkTotal, normalizationCoefficient);
 	}
 }

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
@@ -17,6 +18,7 @@ import org.cytoscape.model.CyTableUtil;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.wordcloud.internal.WordCloudSettingsHolder;
+import org.cytoscape.wordcloud.internal.ui.WordCloudDialog;
 import org.cytoscape.work.TaskMonitor;
 
 /**
@@ -25,6 +27,10 @@ import org.cytoscape.work.TaskMonitor;
 public class WordCloudUtility {
 	public static List<CyNode> fetchSelectedNodes(CyNetwork network) {
 		return CyTableUtil.getNodesInState(network, "selected", true);
+	}
+	
+	public static List<CyNode> fetchUnselectedNodes(CyNetwork network) {
+		return CyTableUtil.getNodesInState(network, "selected", false);
 	}
 	
 	// Make sure the right CyTable is given, if multiple tables contain the nodes
@@ -167,6 +173,41 @@ public class WordCloudUtility {
 		// Redraw the view for selection
 		for (CyNetworkView networkView : cyNetworkViewManager.getNetworkViews(network)) {
 			networkView.updateView();
+		}
+	}
+	
+	public static void updateWordCloud(
+			CyApplicationManager cyApplicationManager,
+			WordCloudSettingsHolder wordCloudSettingsHolder,
+			WordCloudDialog wordCloudDialog) {
+		
+		List<CyNode> selectedNodes = WordCloudUtility.fetchSelectedNodes(cyApplicationManager.getCurrentNetwork());
+		
+		// Notes:
+		// 1. Use CyNetworkTableManager to get network from table
+		// 2. Use cyTable.getRow(cyNode) to get row
+		
+		if (selectedNodes != null && selectedNodes.size() > 0) {
+			
+			Map<String, Collection<CyNode>> nodesPerWordMap = new HashMap<String, Collection<CyNode>>();
+			Map<String, Integer> wordCounts = WordCloudUtility.getWordCounts(selectedNodes, 
+					cyApplicationManager.getCurrentNetwork(),
+					nodesPerWordMap,
+					wordCloudSettingsHolder);
+			
+			// Check if we need to get word counts for the network
+			Map<String, Integer> networkWordCounts = new HashMap<String, Integer>();
+			if (wordCloudSettingsHolder.isUsingNormalization()) {
+				List<CyNode> unselectedNodes = WordCloudUtility.fetchUnselectedNodes(cyApplicationManager.getCurrentNetwork());
+				Map<String, Collection<CyNode>> networkNodesPerWordMap = new HashMap<String, Collection<CyNode>>();
+				
+				networkWordCounts = WordCloudUtility.getWordCounts(
+						unselectedNodes, cyApplicationManager.getCurrentNetwork(), nodesPerWordMap, wordCloudSettingsHolder);
+			}
+			
+			wordCloudDialog.populateWordCloud(wordCounts, networkWordCounts, wordCloudSettingsHolder, nodesPerWordMap);
+		} else {
+			wordCloudDialog.clearWordCloud();
 		}
 	}
 }

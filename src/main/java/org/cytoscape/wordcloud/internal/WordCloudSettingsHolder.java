@@ -32,6 +32,10 @@ public class WordCloudSettingsHolder {
 	
 	private Collection<SettingsChangeListener> settingsChangeListeners = new HashSet<SettingsChangeListener>();
 	
+	private double normalizationCoefficient = 0.0;
+	
+	private boolean isUsingNormalization = false;
+	
 	public int getMaxWordCount() {
 		return this.maxWordCount;
 	}
@@ -58,6 +62,14 @@ public class WordCloudSettingsHolder {
 	
 	public Map<CyNetwork, Collection<String>> getExcludedColumnsMap() {
 		return this.excludedColumnsMap;
+	}
+	
+	public double getNormalizationCoefficient() {
+		return this.normalizationCoefficient;
+	}
+	
+	public boolean isUsingNormalization() {
+		return this.isUsingNormalization;
 	}
 	
 	public void setMaxWordCount(int maxWordCount) {
@@ -94,6 +106,14 @@ public class WordCloudSettingsHolder {
 		this.excludedColumnsMap = excludedColumnsMap;
 		
 		fireChangedEvent();
+	}
+	
+	public void setNormalizationCoefficient(double normalizationCoefficient) {
+		this.normalizationCoefficient = normalizationCoefficient;
+	}
+	
+	public void setUsingNormalization(boolean isUsingNormalization) {
+		this.isUsingNormalization = isUsingNormalization;
 	}
 	
 	private void fireChangedEvent() {

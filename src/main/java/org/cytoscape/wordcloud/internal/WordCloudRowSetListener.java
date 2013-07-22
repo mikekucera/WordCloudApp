@@ -56,35 +56,8 @@ public class WordCloudRowSetListener implements RowsSetListener {
 			return;
 		}
 		
-		// Get selected nodes
-		// TODO: cyApplicationManager's current network may not be the triggering network
-		List<CyNode> selectedNodes = WordCloudUtility.fetchSelectedNodes(this.cyApplicationManager.getCurrentNetwork());
-		//System.out.println("Number of selected nodes on current network: " + selectedNodes.size());
-		
-		// Get the table for the current network
-		CyTable cyTable = e.getSource();
-		
-		// Notes:
-		// 1. Use CyNetworkTableManager to get network from table
-		// 2. Use cyTable.getRow(cyNode) to get row
-		
-		if (selectedNodes != null && selectedNodes.size() > 0) {
-		
-			CyNode selectedNode = selectedNodes.iterator().next();
-			
-			Map<String, Collection<CyNode>> nodesPerWordMap = new HashMap<String, Collection<CyNode>>();
-			Map<String, Integer> wordCounts = WordCloudUtility.getWordCounts(selectedNodes, 
-					this.cyApplicationManager.getCurrentNetwork(),
-					nodesPerWordMap,
-					this.wordCloudSettingsHolder);
-			
-			if (this.wordCloudDialog.isVisible()) {
-				this.wordCloudDialog.populateWordCloud(wordCounts, wordCloudSettingsHolder, nodesPerWordMap);
-			}
-		} else {
-			if (this.wordCloudDialog.isVisible()) {
-				this.wordCloudDialog.clearWordCloud();
-			}
+		if (this.wordCloudDialog.isVisible()) {
+			WordCloudUtility.updateWordCloud(this.cyApplicationManager, this.wordCloudSettingsHolder, this.wordCloudDialog);
 		}
 	}
 	

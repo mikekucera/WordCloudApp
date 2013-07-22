@@ -24,10 +24,11 @@ public class ShowWordCloudAction extends AbstractCyAction {
 	
 	private WordCloudSettingsHolder wordCloudSettingsHolder;
 	
-	public ShowWordCloudAction(CySwingApplication cySwingApplication,
-			WordCloudDialog wordCloudDialog,
-			CyApplicationManager cyApplicationManager,
-			WordCloudSettingsHolder wordCloudSettingsHolder) {
+	public ShowWordCloudAction(final CySwingApplication cySwingApplication,
+			final WordCloudDialog wordCloudDialog,
+			final CyApplicationManager cyApplicationManager,
+			final WordCloudSettingsHolder wordCloudSettingsHolder) {
+		
 		super("Show Word Cloud");
 		setPreferredMenu("Apps.WordCloud");
 		
@@ -46,7 +47,7 @@ public class ShowWordCloudAction extends AbstractCyAction {
 			
 			@Override
 			public void settingsChanged(WordCloudSettingsHolder wordCloudSettingsHolder) {
-				updateWordCloud();
+				WordCloudUtility.updateWordCloud(cyApplicationManager, wordCloudSettingsHolder, wordCloudDialog);
 			}
 		});
 	}
@@ -67,31 +68,10 @@ public class ShowWordCloudAction extends AbstractCyAction {
 		}
 		
 		// Update the word cloud
-		updateWordCloud();
+		WordCloudUtility.updateWordCloud(this.cyApplicationManager, this.wordCloudSettingsHolder, this.wordCloudDialog);
 		
 		this.wordCloudDialog.setVisible(true);
 	}
 	
-	private void updateWordCloud() {
-		List<CyNode> selectedNodes = WordCloudUtility.fetchSelectedNodes(this.cyApplicationManager.getCurrentNetwork());
-		
-		// Notes:
-		// 1. Use CyNetworkTableManager to get network from table
-		// 2. Use cyTable.getRow(cyNode) to get row
-		
-		if (selectedNodes != null && selectedNodes.size() > 0) {
-			
-			Map<String, Collection<CyNode>> nodesPerWordMap = new HashMap<String, Collection<CyNode>>();
-			Map<String, Integer> wordCounts = WordCloudUtility.getWordCounts(selectedNodes, 
-					this.cyApplicationManager.getCurrentNetwork(),
-					nodesPerWordMap,
-					this.wordCloudSettingsHolder);
-			
-			// System.out.println("Populating wordcloud with wordCounts: " + wordCounts);
-			
-			this.wordCloudDialog.populateWordCloud(wordCounts, wordCloudSettingsHolder, nodesPerWordMap);
-		} else {
-			this.wordCloudDialog.clearWordCloud();
-		}
-	}
+
 }
