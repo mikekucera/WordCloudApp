@@ -197,10 +197,12 @@ public class WordCloudDialog extends JDialog {
 		
 		
 		// If we're using normalization, calculate font size-related values for each word
+		/*
 		Map<String, >
 		if (wordCloudSettings.isUsingNormalization()) {
 			
 		}
+		*/
 		
 		for (int i = 0; i < maxWordCount; i++) {
 			if (i >= wordCountEntryArray.size()) {
@@ -214,13 +216,13 @@ public class WordCloudDialog extends JDialog {
 			
 			int fontSize;
 			
-			if (wordCloudSettings.isUsingNormalization()) {
+//			if (wordCloudSettings.isUsingNormalization()) {
 				
-			} else {
+//			} else {
 				fontSize = calculateFontSize(count, minAppearCount, maxAppearCount,
 						wordCloudSettings.getMinWordCloudFontSize(),
 						wordCloudSettings.getMaxWordCloudFontSize());
-			}
+//			}
 			
 			// Shorten the word if necessary
 			JLabel label = new JLabel(wordCloudSettings.getWordShortener().shortenWord(word));
@@ -268,15 +270,6 @@ public class WordCloudDialog extends JDialog {
 		
 		@Override
 		public void mouseClicked(MouseEvent arg0) {
-			RowSetListenerToggle.getInstance().stopListening(200);
-			
-			Collection<CyNode> nodesForWord = this.nodesPerWordMap.get(label.getText());
-			
-			WordCloudUtility.setNodeSelection(
-					nodesForWord, 
-					this.cyApplicationManager.getCurrentNetwork(), 
-					this.cyEventHelper,
-					this.cyNetworkViewManager);
 		}
 
 		@Override
@@ -293,6 +286,15 @@ public class WordCloudDialog extends JDialog {
 
 		@Override
 		public void mousePressed(MouseEvent arg0) {
+			RowSetListenerToggle.getInstance().stopListening(200);
+			
+			Collection<CyNode> nodesForWord = this.nodesPerWordMap.get(label.getText());
+			
+			WordCloudUtility.setNodeSelection(
+					nodesForWord, 
+					this.cyApplicationManager.getCurrentNetwork(), 
+					this.cyEventHelper,
+					this.cyNetworkViewManager);
 		}
 
 		@Override

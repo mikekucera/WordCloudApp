@@ -110,10 +110,14 @@ public class WordCloudSettingsHolder {
 	
 	public void setNormalizationCoefficient(double normalizationCoefficient) {
 		this.normalizationCoefficient = normalizationCoefficient;
+		
+		fireChangedEvent();
 	}
 	
 	public void setUsingNormalization(boolean isUsingNormalization) {
 		this.isUsingNormalization = isUsingNormalization;
+		
+		fireChangedEvent();
 	}
 	
 	private void fireChangedEvent() {
