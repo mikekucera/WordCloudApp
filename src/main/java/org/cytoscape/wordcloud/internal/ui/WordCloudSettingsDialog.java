@@ -1,12 +1,15 @@
 package org.cytoscape.wordcloud.internal.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
@@ -33,13 +36,18 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.ListModel;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.text.Document;
 
 import org.cytoscape.application.CyApplicationManager;
@@ -299,7 +307,7 @@ public class WordCloudSettingsDialog extends JDialog {
 	    attributeSelectionPopupMenu.add(scrollPane);
 	    
 	    JButton attributeButton = new JButton("Edit Columns");
-	    attributeButton.setToolTipText("Edit node attribute table columns to use for semantic analysis");
+	    attributeButton.setToolTipText("Edit node table columns to use for semantic analysis");
 	    attributeButton.addMouseListener(new MouseAdapter()
 	    {
 	    	public void mouseClicked(MouseEvent e)
@@ -552,13 +560,82 @@ public class WordCloudSettingsDialog extends JDialog {
 		//Checkbox
 		useNetworkCounts = new JCheckBox("Normalize word size using selection/network ratios");
 		useNetworkCounts.setToolTipText("Enables word size to be calculated using using counts over the entire network, rather than just selected nodes");
-		// useNetworkCounts.addActionListener( this);
+		useNetworkCounts.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				Boolean selected = useNetworkCounts.isSelected();
+
+				//Enable or disable slider bar stuff and reset network weights
+				if (selected)
+				{
+					sliderPanel.setVisible(true);
+					sliderPanel.setEnabled(true);
+					
+					Double netNormalization = wordCloudSettingsHolder.getNormalizationCoefficient();
+					sliderPanel.setNetNormValue(netNormalization);
+					
+					wordCloudSettingsHolder.setUsingNormalization(true);
+				}
+				else
+				{
+					//Confirm continuation
+					Component parent = cySwingApplication.getJFrame();
+					int value = JOptionPane.NO_OPTION;
+					
+					/*
+					value = JOptionPane.showConfirmDialog(parent,"Network normalization will now be set to 0.  Do you want to continue?", 
+							"Network Normalization",
+							JOptionPane.YES_NO_OPTION);
+					*/
+					
+//					if (value == JOptionPane.YES_OPTION)
+					{
+						sliderPanel.setVisible(false);
+						sliderPanel.setEnabled(false);
+					
+						//reset network param
+						wordCloudSettingsHolder.setUsingNormalization(false);
+//						wordCloudSettingsHolder.setNormalizationCoefficient(0.0);
+//						cloudParams.setNetWeightFactor(0.0);
+//						sliderPanel.setNetNormValue(0.0);
+					}
+					/*
+					else
+					{
+						//Reset Values
+						sliderPanel.setVisible(true);
+						sliderPanel.setEnabled(true);
+						
+						Double netNormalization = wordCloudSettingsHolder.getNormalizationCoefficient();
+						sliderPanel.setNetNormValue(netNormalization);
+						
+						useNetworkCounts.setSelected(true);
+						wordCloudSettingsHolder.setUsingNormalization(true);
+					}
+					*/
+				}//end collapse Network Normalization panel
+			}
+		});
+		
 		useNetworkCounts.setSelected(false);
 //		useNetworkCounts.setEnabled(false);
 		
 		sliderPanel = new SliderBarPanel(0,1,"Network Normalization", "Network Normalization", 10);
 //		sliderPanel.setEnabled(false);
 		sliderPanel.setVisible(false);
+
+		sliderPanel.getSlider().addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				JSlider slider = (JSlider) e.getSource();
+				System.out.println("slider change");
+				
+				wordCloudSettingsHolder.setNormalizationCoefficient(slider.getValue() / sliderPanel.getPrecision());
+			}
+			
+		});
 		
 		buf = new StringBuffer();
 		buf.append("<html>" + "Determines how much weight to give the whole network when normalizing the selected nodes" + "<br>");
@@ -589,6 +666,39 @@ public class WordCloudSettingsDialog extends JDialog {
 		
 		//Add to collapsible panel
 		collapsiblePanel.getContentPane().add(panel, BorderLayout.NORTH);
+		
+		return collapsiblePanel;
+	}
+	
+	/**
+	 * Creates a CollapsiblePanel that holds the word exclusion list information.
+	 * @return CollapsiblePanel - word exclusion list panel interface.
+	 */
+	private CollapsiblePanel createExclusionListPanelNew()
+	{
+		CollapsiblePanel collapsiblePanel = new CollapsiblePanel("Word Exclusion List");
+		
+
+		JScrollPane tableScrollPane = new JScrollPane();
+		tableScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		tableScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		
+		JTable excludedWordsTable = new JTable();
+		tableScrollPane.setViewportView(excludedWordsTable);
+		
+		excludedWordsTable.setModel(new DefaultTableModel(
+				new Object [][] {
+                {"Test1", "Test2", "Test3"}
+            },
+            new String [] {
+                "Excluded Words"
+            }));
+		
+		excludedWordsTable.setPreferredSize(new Dimension(100, 60));
+		tableScrollPane.setPreferredSize(new Dimension(100, 60));
+		
+		//Add to collapsible panel
+		collapsiblePanel.getContentPane().add(tableScrollPane, BorderLayout.CENTER);
 		
 		return collapsiblePanel;
 	}
@@ -868,8 +978,18 @@ public class WordCloudSettingsDialog extends JDialog {
 		buf.append("<b>Notice:</b> This will allow words with a similar stem to map to the same word." + "<br>");
 		buf.append("However, words stems may not be what you expect." + "</html>");
 		stemmer.setToolTipText(buf.toString());
-//		stemmer.addActionListener(this);
-		stemmer.setSelected(false);
+		stemmer.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				boolean selected = stemmer.isSelected();
+				
+				System.out.println("Changed isUsingStemming to: " + selected);
+				wordCloudSettingsHolder.setUsingStemming(selected);
+			}
+			
+		});
+		stemmer.setSelected(wordCloudSettingsHolder.isUsingStemming());
 //		stemmer.setEnabled(false);
 		
 		//GridBagConstraints gridBagConstraints = new GridBagConstraints();
@@ -1082,7 +1202,7 @@ public class WordCloudSettingsDialog extends JDialog {
 					//All is well
 					wordCloudSettingsHolder.setMaxWordCount(value.intValue());
 					
-					System.out.println("Updated settings to " + value.intValue());
+//					System.out.println("Updated settings to " + value.intValue());
 				}
 				else
 				{

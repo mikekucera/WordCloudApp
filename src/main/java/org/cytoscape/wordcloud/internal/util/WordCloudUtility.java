@@ -18,6 +18,7 @@ import org.cytoscape.model.CyTableUtil;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.CyNetworkViewManager;
 import org.cytoscape.wordcloud.internal.WordCloudSettingsHolder;
+import org.cytoscape.wordcloud.internal.stemmer.Stemmer;
 import org.cytoscape.wordcloud.internal.ui.WordCloudDialog;
 import org.cytoscape.work.TaskMonitor;
 
@@ -25,6 +26,14 @@ import org.cytoscape.work.TaskMonitor;
  * Set of utility functions used for WordCloud
  */
 public class WordCloudUtility {
+	
+	/**
+	 * A map that maps the stemmed version of a word to the first seen unstemmed version of that word.
+	 * This is useful for displaying words that have been stemmed, as displaying the stemmed versions
+	 * will cause non-words to be displayed.
+	 */
+	private static Map<String, String> reverseStemmingMap = new HashMap<String, String>();
+	
 	public static List<CyNode> fetchSelectedNodes(CyNetwork network) {
 		return CyTableUtil.getNodesInState(network, "selected", true);
 	}
@@ -42,11 +51,13 @@ public class WordCloudUtility {
 		
 		Map<String, Integer> wordCounts = new HashMap<String, Integer>();
 		nodesPerWordMap.clear();
-		
+
 		for (CyNode node : nodes) {
+			
 			List<String> nodeWords = WordCloudUtility.getWords(node, network,
 					wordCloudSettingsHolder.getWordTokenizer(),
-					wordCloudSettingsHolder.getExcludedColumnsMap());
+					wordCloudSettingsHolder.getExcludedColumnsMap(),
+					wordCloudSettingsHolder.isUsingStemming());
 			
 			for (String word : nodeWords) {
 				// Add to the 'nodes per word' map
@@ -74,7 +85,34 @@ public class WordCloudUtility {
 		return wordCounts;
 	}
 	
-
+	public static void buildReverseStemmingMap(CyNetwork network,
+			WordTokenizer wordTokenizer) {
+		
+		reverseStemmingMap.clear();
+		
+		for (CyNode node : network.getNodeList()) {
+			List<String> nodeWords = WordCloudUtility.getWords(node, network, wordTokenizer, 
+					new HashMap<CyNetwork, Collection<String>>(), false);
+			
+			for (String nodeWord : nodeWords) {
+				Stemmer stemmer = new Stemmer();
+				
+				stemmer.add(nodeWord.toCharArray(), nodeWord.length());
+				stemmer.stem();
+				String stemmed = stemmer.toString();
+				
+				if (reverseStemmingMap.get(stemmed) == null) {
+					reverseStemmingMap.put(stemmed, nodeWord);
+				} else {
+					if (nodeWord.length() < reverseStemmingMap.get(stemmed).length()) {
+						reverseStemmingMap.put(stemmed, nodeWord);
+					}
+				}
+			}
+		}
+		
+	}
+	
 	/**
 	 * Get the words for a given node
 	 * 
@@ -84,7 +122,8 @@ public class WordCloudUtility {
 	 */
 	public static List<String> getWords(CyNode node, CyNetwork network, 
 			WordTokenizer wordTokenizer, 
-			Map<CyNetwork, Collection<String>> excludedColumnsMap) {
+			Map<CyNetwork, Collection<String>> excludedColumnsMap,
+			boolean isUsingStemming) {
 		
 		List<String> words = new LinkedList<String>();
 		
@@ -117,8 +156,8 @@ public class WordCloudUtility {
 				if (value instanceof String) {
 					// Split the string based on punctuation and spaces, then add the individual words
 					Collection<String> splitWords = wordTokenizer.tokenize((String) value);
-	
-					words.addAll(splitWords);
+
+					WordCloudUtility.addSplitToTotal(splitWords, words, isUsingStemming);
 					
 				} else if (value instanceof List) {
 					
@@ -129,7 +168,7 @@ public class WordCloudUtility {
 							// Split the string based on punctuation and spaces, then add the individual words
 							Collection<String> splitWords = wordTokenizer.tokenize((String) listObject);
 	
-							words.addAll(splitWords);
+							WordCloudUtility.addSplitToTotal(splitWords, words, isUsingStemming);
 						}
 					}
 				}
@@ -137,6 +176,37 @@ public class WordCloudUtility {
 		}
 		
 		return words;
+	}
+	
+	private static void addSplitToTotal(Collection<String> splitWords, Collection<String> totalWords, boolean isUsingStemming) {
+		if (!isUsingStemming) {
+			totalWords.addAll(splitWords);
+		} else {
+			for (String splitWord : splitWords) {
+				Stemmer stemmer = new Stemmer();
+				
+				stemmer.add(splitWord.toCharArray(), splitWord.length());
+				stemmer.stem();
+				String stemmed = stemmer.toString();
+				
+				/* Implementation for not using prebuilt reverse stemming map
+				if (WordCloudUtility.reverseStemmingMap.get(stemmed) == null) {
+					WordCloudUtility.reverseStemmingMap.put(stemmed, splitWord);
+				}
+				
+			//	System.out.println("Stemmed word " + splitWord + " to: " + stemmed);
+				
+				totalWords.add(WordCloudUtility.reverseStemmingMap.get(stemmed));
+				*/
+				
+				if (WordCloudUtility.reverseStemmingMap.get(stemmed) != null) {
+					totalWords.add(WordCloudUtility.reverseStemmingMap.get(stemmed));
+				} else {
+					// This case should not happen if the reverse stemming map was prebuilt
+					totalWords.add(splitWord);
+				}
+			}
+		}
 	}
 	
 	/**
@@ -190,22 +260,38 @@ public class WordCloudUtility {
 		if (selectedNodes != null && selectedNodes.size() > 0) {
 			
 			Map<String, Collection<CyNode>> nodesPerWordMap = new HashMap<String, Collection<CyNode>>();
+			
+			// Prebuild the network reverse word stemming map if we're using stemming
+			if (wordCloudSettingsHolder.isUsingStemming()) {
+				WordCloudUtility.buildReverseStemmingMap(cyApplicationManager.getCurrentNetwork(), wordCloudSettingsHolder.getWordTokenizer());
+			}
+			
 			Map<String, Integer> wordCounts = WordCloudUtility.getWordCounts(selectedNodes, 
 					cyApplicationManager.getCurrentNetwork(),
 					nodesPerWordMap,
 					wordCloudSettingsHolder);
 			
 			// Check if we need to get word counts for the network
-			Map<String, Integer> networkWordCounts = new HashMap<String, Integer>();
 			if (wordCloudSettingsHolder.isUsingNormalization()) {
+				Map<String, Integer> networkWordCounts = new HashMap<String, Integer>();
+				
 				List<CyNode> unselectedNodes = WordCloudUtility.fetchUnselectedNodes(cyApplicationManager.getCurrentNetwork());
 				Map<String, Collection<CyNode>> networkNodesPerWordMap = new HashMap<String, Collection<CyNode>>();
 				
 				networkWordCounts = WordCloudUtility.getWordCounts(
 						unselectedNodes, cyApplicationManager.getCurrentNetwork(), nodesPerWordMap, wordCloudSettingsHolder);
+				
+//				System.out.println("Normalized call");
+				wordCloudDialog.populateWordCloudNormalized(
+						wordCounts, 
+						networkWordCounts, 
+						selectedNodes.size(), 
+						cyApplicationManager.getCurrentNetwork().getNodeCount(), 
+						wordCloudSettingsHolder, 
+						nodesPerWordMap);
+			} else {
+				wordCloudDialog.populateWordCloud(wordCounts, wordCloudSettingsHolder, nodesPerWordMap);
 			}
-			
-			wordCloudDialog.populateWordCloud(wordCounts, networkWordCounts, wordCloudSettingsHolder, nodesPerWordMap);
 		} else {
 			wordCloudDialog.clearWordCloud();
 		}

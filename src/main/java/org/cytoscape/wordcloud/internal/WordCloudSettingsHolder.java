@@ -32,9 +32,11 @@ public class WordCloudSettingsHolder {
 	
 	private Collection<SettingsChangeListener> settingsChangeListeners = new HashSet<SettingsChangeListener>();
 	
-	private double normalizationCoefficient = 0.0;
+	private double normalizationCoefficient = 0.5;
 	
 	private boolean isUsingNormalization = false;
+	
+	private boolean isUsingStemming = true;
 	
 	public int getMaxWordCount() {
 		return this.maxWordCount;
@@ -70,6 +72,10 @@ public class WordCloudSettingsHolder {
 	
 	public boolean isUsingNormalization() {
 		return this.isUsingNormalization;
+	}
+	
+	public boolean isUsingStemming() {
+		return this.isUsingStemming;
 	}
 	
 	public void setMaxWordCount(int maxWordCount) {
@@ -116,6 +122,12 @@ public class WordCloudSettingsHolder {
 	
 	public void setUsingNormalization(boolean isUsingNormalization) {
 		this.isUsingNormalization = isUsingNormalization;
+		
+		fireChangedEvent();
+	}
+	
+	public void setUsingStemming(boolean isUsingStemming) {
+		this.isUsingStemming = isUsingStemming;
 		
 		fireChangedEvent();
 	}

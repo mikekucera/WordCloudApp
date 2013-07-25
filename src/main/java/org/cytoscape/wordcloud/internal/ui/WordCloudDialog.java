@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -151,16 +152,166 @@ public class WordCloudDialog extends JDialog {
 	 * @param nodesPerWordMap The nodes per word map used for the 'click on word to get selection of containing nodes' 
 	 * feature
 	 */
-	public void populateWordCloud(
+	public void populateWordCloudNormalized(
 			Map<String, Integer> wordCounts, 
 			Map<String, Integer> networkWordCounts,
+			int selectedNodeCount,
+			int networkNodeCount,
 			WordCloudSettingsHolder wordCloudSettings,
 			Map<String, Collection<CyNode>> nodesPerWordMap) {
 		
 		this.wordCloudPanel.removeAll();
 		this.wordCloudPanel.setLayout(new WrapLayout());
 		
-		// Obtain the min and maximum word appearance counts
+		
+		// Create a map of each word to its network normalized font size factor
+		// --------------------------------------------------------------------
+		
+		final Map<String, Double> networkNormalizedSizeFactors = new HashMap<String, Double>();
+		
+		double normalizationCoefficient = wordCloudSettings.getNormalizationCoefficient();
+		double normalizedFontFactor;
+		double minNormalizedFontFactor = 0;
+		double maxNormalizedFontFactor = 0;
+		boolean firstIteration = true;
+		
+		for (Entry<String, Integer> entry : wordCounts.entrySet()) {
+			
+			/*
+			System.out.println("Normalized call");
+			System.out.println("entry.getValue() " + entry.getValue());
+			System.out.println("selectedNodeCount " + entry.getValue());
+			System.out.println("networkWordCounts.get(entry.getKey()) + entry.getValue() " + networkWordCounts.get(entry.getKey()) + entry.getValue());
+			System.out.println("networkNodeCount" + networkNodeCount);
+			System.out.println("normalizationCoefficient" + normalizationCoefficient);
+			*/
+			
+			int wordNetworkAppearanceCount = entry.getValue();
+			
+			if (networkWordCounts.get(entry.getKey()) != null) {
+				wordNetworkAppearanceCount += networkWordCounts.get(entry.getKey());
+			}
+			
+			normalizedFontFactor = calculateNormalizedFontSizeFactor(
+					entry.getValue(), 
+					selectedNodeCount, 
+					wordNetworkAppearanceCount, 
+					networkNodeCount,
+					normalizationCoefficient);
+			
+			networkNormalizedSizeFactors.put(entry.getKey(), normalizedFontFactor);
+			
+			if (firstIteration) {
+				minNormalizedFontFactor = normalizedFontFactor;
+				maxNormalizedFontFactor = normalizedFontFactor;
+				
+				firstIteration = false;
+			} else {
+				if (normalizedFontFactor > maxNormalizedFontFactor) {
+					maxNormalizedFontFactor = normalizedFontFactor;
+				}
+				
+				if (normalizedFontFactor < minNormalizedFontFactor) {
+					minNormalizedFontFactor = normalizationCoefficient;
+				}
+			}
+		}
+		
+		
+		ArrayList<Entry<String, Integer>> wordCountEntryArray = new ArrayList<Entry<String, Integer>>();
+		wordCountEntryArray.addAll(wordCounts.entrySet());
+		
+		Collections.sort(wordCountEntryArray, new Comparator<Object>() {
+
+			@Override
+			public int compare(Object first, Object second) {
+				double firstFactor = networkNormalizedSizeFactors.get(((Entry<String, Integer>) first).getKey());
+				double secondFactor = networkNormalizedSizeFactors.get(((Entry<String, Integer>) second).getKey());
+			
+				if (Math.abs(secondFactor - firstFactor) < 0.00001) {
+					return 0;
+				} else {
+					return (int) Math.signum(secondFactor - firstFactor);
+				}
+			}
+			
+		});
+		
+		int maxWordCount = wordCloudSettings.getMaxWordCount();
+		
+		
+		// If we're using normalization, calculate font size-related values for each word
+		/*
+		Map<String, >
+		if (wordCloudSettings.isUsingNormalization()) {
+			
+		}
+		*/
+		
+		for (int i = 0; i < maxWordCount; i++) {
+			if (i >= wordCountEntryArray.size()) {
+				break;
+			}
+			
+			Entry<String, Integer> entry = wordCountEntryArray.get(i);
+			String word = entry.getKey();
+			int count = entry.getValue();
+			
+			
+			int fontSize;
+			
+			fontSize = (int) Math.round(linearInterpolate(networkNormalizedSizeFactors.get(word), 
+					minNormalizedFontFactor, 
+					maxNormalizedFontFactor,
+					wordCloudSettings.getMinWordCloudFontSize(),
+					wordCloudSettings.getMaxWordCloudFontSize()));
+			/*
+			System.out.println("normalized font size for " + word + ": " + fontSize);
+			System.out.println("networkNormalizedSizeFactors.get(word)" + " " + networkNormalizedSizeFactors.get(word));
+			System.out.println("minNormalizedFontFactor" + " " + minNormalizedFontFactor);
+			System.out.println("maxNormalizedFontFactor" + " " + maxNormalizedFontFactor);
+			System.out.println("wordCloudSettings.getMinWordCloudFontSize()" + " " + wordCloudSettings.getMinWordCloudFontSize());
+			System.out.println("wordCloudSettings.getMaxWordCloudFontSize()" + " " + wordCloudSettings.getMaxWordCloudFontSize());
+			*/
+			
+			// Shorten the word if necessary
+			JLabel label = new JLabel(wordCloudSettings.getWordShortener().shortenWord(word));
+			
+			Font defaultLabelFont = label.getFont();
+			Font font = new Font(defaultLabelFont.getFontName(), defaultLabelFont.getStyle(), fontSize);
+			
+			label.setFont(font);
+			label.addMouseListener(new WordCloudLabelMouseListener(label, nodesPerWordMap, 
+					this.cyApplicationManager,
+					this.cyEventHelper,
+					this.cyNetworkViewManager));
+			
+			this.wordCloudPanel.add(label);
+		}
+		
+		// this.pack();
+		this.wordCloudScrollPane.validate();
+		this.wordCloudScrollPane.repaint();
+	}
+	
+	/**
+	 * Populate the word cloud
+	 * @param wordCounts The word counts used to get words and their font sizes
+	 * @param wordCloudSettings The settings used to adjust output
+	 * @param nodesPerWordMap The nodes per word map used for the 'click on word to get selection of containing nodes' 
+	 * feature
+	 */
+	public void populateWordCloud(
+			Map<String, Integer> wordCounts,
+			WordCloudSettingsHolder wordCloudSettings,
+			Map<String, Collection<CyNode>> nodesPerWordMap) {
+		
+		this.wordCloudPanel.removeAll();
+		this.wordCloudPanel.setLayout(new WrapLayout());
+		
+		// Obtain the min and maximum word appearance counts for calculating font size
+		// ---------------------------------------------------------------------------
+		
 		int minAppearCount = 0;
 		int maxAppearCount = 0;
 		
@@ -178,6 +329,7 @@ public class WordCloudDialog extends JDialog {
 				maxAppearCount = appearCount;
 			}
 		}
+		
 		
 		ArrayList<Entry<String, Integer>> wordCountEntryArray = new ArrayList<Entry<String, Integer>>();
 		wordCountEntryArray.addAll(wordCounts.entrySet());
@@ -323,7 +475,19 @@ public class WordCloudDialog extends JDialog {
 				);
 	}
 	
-	private double calculateNormalizedFontSizeValue(
+	private double linearInterpolate(double inputValue,
+			double inputMin, double inputMax, double outputMin, double outputMax) {
+		
+		if (Math.abs(inputMin - inputMax) < 0.0001) {
+			return (outputMin + outputMax) / 2;
+		}
+		
+//		System.out.println("linearInterpolate: " + (inputValue - inputMin) / (inputMax - inputMin) * (outputMax - outputMin) + outputMin);
+		// Assumes inputMin <= inputValue <= inputMax
+		return (inputValue - inputMin) / (inputMax - inputMin) * (outputMax - outputMin) + outputMin;
+	}
+	
+	private double calculateNormalizedFontSizeFactor(
 			int selectedCount,
 			int selectedTotal, 
 			int networkCount,
