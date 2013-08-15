@@ -88,6 +88,7 @@ public class WordCloudSettingsDialog extends JDialog {
 	private JFormattedTextField maxWordsTextField;
 	private JFormattedTextField clusterCutoffTextField;
 	private JCheckBox useNetworkCounts;
+	private SliderBarPanel minWordsSliderPanel;
 	private SliderBarPanel sliderPanel;
 	private JFormattedTextField addWordTextField;
 	private JButton addWordButton;
@@ -552,6 +553,19 @@ public class WordCloudSettingsDialog extends JDialog {
 		clusterCutoffPanel.add(clusterCutoffLabel, BorderLayout.WEST);
 		clusterCutoffPanel.add(clusterCutoffTextField, BorderLayout.EAST);
 		
+		// Min word count panel
+		JPanel minWordPanel = new JPanel();
+		minWordPanel.setLayout(new GridBagLayout());
+		
+		minWordsSliderPanel = new SliderBarPanel(0, 20, "Minimum Word Count", "Minimum Word Count", 10);
+		
+		GridBagConstraints gridBagConstraints = new GridBagConstraints();
+		gridBagConstraints.gridx = 0;
+		gridBagConstraints.gridy = 0;
+		gridBagConstraints.weightx = 1.0;
+		gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+		gridBagConstraints.insets = new Insets(0,0,0,0);
+		minWordPanel.add(minWordsSliderPanel, gridBagConstraints);
 		
 		//New Network Normalization Panel
 		JPanel netNormalizationPanel = new JPanel();
@@ -630,7 +644,7 @@ public class WordCloudSettingsDialog extends JDialog {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				JSlider slider = (JSlider) e.getSource();
-				System.out.println("slider change");
+//				System.out.println("slider change");
 				
 				wordCloudSettingsHolder.setNormalizationCoefficient(slider.getValue() / sliderPanel.getPrecision());
 			}
@@ -642,7 +656,7 @@ public class WordCloudSettingsDialog extends JDialog {
 		buf.append("<b>Acceptable Values:</b> greater than or equal to 0 and less than or equal to 1" + "</html>");
 		sliderPanel.setToolTipText(buf.toString());
 		
-		GridBagConstraints gridBagConstraints = new GridBagConstraints();
+		gridBagConstraints = new GridBagConstraints();
 		gridBagConstraints.gridx = 0;
 		gridBagConstraints.gridy = 0;
 		gridBagConstraints.weightx = 1.0;
@@ -661,6 +675,7 @@ public class WordCloudSettingsDialog extends JDialog {
 		//Add components to main panel
 		panel.add(maxWordsPanel);
 		panel.add(clusterCutoffPanel);
+		panel.add(minWordPanel);
 		panel.add(netNormalizationPanel);
 		
 		
