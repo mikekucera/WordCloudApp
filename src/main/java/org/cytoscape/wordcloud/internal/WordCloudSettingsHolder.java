@@ -3,8 +3,10 @@ package org.cytoscape.wordcloud.internal;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.wordcloud.internal.util.WordShortener;
@@ -32,11 +34,18 @@ public class WordCloudSettingsHolder {
 	
 	private Collection<SettingsChangeListener> settingsChangeListeners = new HashSet<SettingsChangeListener>();
 	
+	private Set<String> excludedWordsLowercase = new HashSet<String>();
+	
 	private double normalizationCoefficient = 0.5;
 	
 	private boolean isUsingNormalization = false;
 	
 	private boolean isUsingStemming = true;
+	
+	// Minimum word count for word to appear
+	private int minWordCount = 0;
+	
+	private int minWordCountSliderMax = 20;
 	
 	public int getMaxWordCount() {
 		return this.maxWordCount;
@@ -66,6 +75,10 @@ public class WordCloudSettingsHolder {
 		return this.excludedColumnsMap;
 	}
 	
+	public Set<String> getExcludedWordsLowercase() {
+		return this.excludedWordsLowercase;
+	}
+	
 	public double getNormalizationCoefficient() {
 		return this.normalizationCoefficient;
 	}
@@ -76,6 +89,14 @@ public class WordCloudSettingsHolder {
 	
 	public boolean isUsingStemming() {
 		return this.isUsingStemming;
+	}
+	
+	public int getMinWordCount() {
+		return this.minWordCount;
+	}
+	
+	public int getMinWordCountSliderMax() {
+		return this.minWordCountSliderMax;
 	}
 	
 	public void setMaxWordCount(int maxWordCount) {
@@ -132,7 +153,25 @@ public class WordCloudSettingsHolder {
 		fireChangedEvent();
 	}
 	
-	private void fireChangedEvent() {
+	public void setExcludedWordsLowercase(Set<String> excludedWordsLowercase) {
+		this.excludedWordsLowercase = excludedWordsLowercase;
+		
+		fireChangedEvent();
+	}
+	
+	public void setMinWordCount(int wordCount) {
+		this.minWordCount = wordCount;
+		
+		fireChangedEvent();
+	}
+	
+	public void setMinWordCountSliderMax(int minWordCountSliderMax) {
+		this.minWordCountSliderMax = minWordCountSliderMax;
+		
+		fireChangedEvent();
+	}
+	
+	public void fireChangedEvent() {
 		for (SettingsChangeListener settingsChangeListener : this.settingsChangeListeners) {
 			settingsChangeListener.settingsChanged(this);
 		}

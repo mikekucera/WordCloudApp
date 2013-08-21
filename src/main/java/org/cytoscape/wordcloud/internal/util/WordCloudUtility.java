@@ -271,6 +271,20 @@ public class WordCloudUtility {
 					nodesPerWordMap,
 					wordCloudSettingsHolder);
 			
+			// Remove words less than min word count
+			int minWordCount = wordCloudSettingsHolder.getMinWordCount();
+			HashSet<String> toBeRemovedWords = new HashSet<String>();
+			
+			for (Entry<String, Integer> entry : wordCounts.entrySet()) {
+				if (entry.getValue() < minWordCount) {
+					toBeRemovedWords.add(entry.getKey());
+				}
+			}
+			
+			for (String toBeRemovedWord : toBeRemovedWords) {
+				wordCounts.remove(toBeRemovedWord);
+			}
+			
 			// Check if we need to get word counts for the network
 			if (wordCloudSettingsHolder.isUsingNormalization()) {
 				Map<String, Integer> networkWordCounts = new HashMap<String, Integer>();

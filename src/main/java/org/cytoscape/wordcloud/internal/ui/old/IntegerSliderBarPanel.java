@@ -44,13 +44,16 @@ public class IntegerSliderBarPanel extends JPanel {
     private NumberRangeModel rangeModel;
 
     //precision that the slider can be adjusted to
-    private double precision = 1000.0;
+    private double precision = 1.0;
     private int dec_precision = (int) Math.log10(precision);
 
     private JLabel label;
     private String sliderLabel;
     
     private JSlider slider;
+    
+    private String attrib;
+    private int desiredWidth;
 
     /**
      * Class constructor
@@ -83,6 +86,9 @@ public class IntegerSliderBarPanel extends JPanel {
         currentsize.height = DIM_HEIGHT/12;
         label.setPreferredSize(currentsize);
         initPanel(attrib, desired_width);
+        
+        this.attrib = attrib;
+        this.desiredWidth = desired_width;
     }
 
     /**
@@ -95,7 +101,7 @@ public class IntegerSliderBarPanel extends JPanel {
 
         slider = new JSlider(JSlider.HORIZONTAL,
                                       min, max, min);
-
+        
         slider.addChangeListener(new IntegerSliderBarActionListener(this,attrib));
 
         slider.setMajorTickSpacing((max-min)/5);
@@ -103,8 +109,8 @@ public class IntegerSliderBarPanel extends JPanel {
 
         //Create the label table
         Hashtable labelTable = new Hashtable();
-        labelTable.put( new Integer( min ), new JLabel(""+ min/precision));
-        labelTable.put( new Integer( max ), new JLabel("" + max/precision));
+        labelTable.put( new Integer( min ), new JLabel(""+ min));
+        labelTable.put( new Integer( max ), new JLabel("" + max));
         slider.setLabelTable( labelTable );
 
         slider.setPaintLabels(true);
@@ -147,6 +153,21 @@ public class IntegerSliderBarPanel extends JPanel {
                 (current_value/precision)                                       // the current P/Q-value cutoff
                 ) );
 
+        this.revalidate();
+    }
+    
+    public void setMaximum(int maximum) {
+    	this.slider.setMaximum(maximum);
+    	this.max = maximum;
+    	
+    	 //Create the label table
+        Hashtable labelTable = new Hashtable();
+        labelTable.put( new Integer( min ), new JLabel(""+ min));
+        labelTable.put( new Integer( max ), new JLabel("" + max));
+        slider.setLabelTable( labelTable );
+
+        slider.setPaintLabels(true);
+        
         this.revalidate();
     }
     

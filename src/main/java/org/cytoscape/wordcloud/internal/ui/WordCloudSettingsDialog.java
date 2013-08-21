@@ -58,6 +58,7 @@ import org.cytoscape.model.CyTable;
 import org.cytoscape.util.swing.CheckBoxJList;
 import org.cytoscape.wordcloud.internal.WordCloudSettingsHolder;
 import org.cytoscape.wordcloud.internal.ui.old.CollapsiblePanel;
+import org.cytoscape.wordcloud.internal.ui.old.IntegerSliderBarPanel;
 import org.cytoscape.wordcloud.internal.ui.old.ModifiedFlowLayout;
 import org.cytoscape.wordcloud.internal.ui.old.SliderBarPanel;
 import org.cytoscape.wordcloud.internal.ui.old.WidestStringComboBoxModel;
@@ -88,7 +89,7 @@ public class WordCloudSettingsDialog extends JDialog {
 	private JFormattedTextField maxWordsTextField;
 	private JFormattedTextField clusterCutoffTextField;
 	private JCheckBox useNetworkCounts;
-	private SliderBarPanel minWordsSliderPanel;
+	private IntegerSliderBarPanel minWordsSliderPanel;
 	private SliderBarPanel sliderPanel;
 	private JFormattedTextField addWordTextField;
 	private JButton addWordButton;
@@ -104,6 +105,8 @@ public class WordCloudSettingsDialog extends JDialog {
 	private JComboBox cmbStyle;
 	private JButton createNetworkButton;
 	private JButton saveCloudButton;
+	
+	private JFormattedTextField sliderMaxTextField;
 	
 	public WordCloudSettingsDialog(JFrame owner, WordCloudSettingsHolder wordCloudSettings, CySwingApplication cySwingApplication, CyApplicationManager cyApplicationManager) {
 		super(owner, false);
@@ -553,11 +556,44 @@ public class WordCloudSettingsDialog extends JDialog {
 		clusterCutoffPanel.add(clusterCutoffLabel, BorderLayout.WEST);
 		clusterCutoffPanel.add(clusterCutoffTextField, BorderLayout.EAST);
 		
+		
+		// Slider max
+		JLabel maxSliderLabel = new JLabel("Maximum value for minimum word count slider");
+		sliderMaxTextField = new JFormattedTextField(intFormat);
+		sliderMaxTextField.setColumns(10);
+		sliderMaxTextField.setValue(this.wordCloudSettingsHolder.getMinWordCountSliderMax()); //Set to default initially
+//				maxWordsTextField.addPropertyChangeListener(new FormattedTextFieldAction());
+		sliderMaxTextField.getDocument().addDocumentListener(new FormattedTextFieldAction());
+		
+		buf = new StringBuffer();
+		buf.append("<html>" + "Specify the maximum value in the min word count slider" + "<br>");
+		buf.append("<b>Acceptable Values:</b> greater than or equal to 0" + "</html>");
+		sliderMaxTextField.setToolTipText(buf.toString());
+		
+		//Max words panel
+		JPanel sliderMaxPanel = new JPanel();
+		sliderMaxPanel.setLayout(new BorderLayout());
+		sliderMaxPanel.add(maxSliderLabel, BorderLayout.WEST);
+		sliderMaxPanel.add(sliderMaxTextField, BorderLayout.EAST);
+		
 		// Min word count panel
 		JPanel minWordPanel = new JPanel();
 		minWordPanel.setLayout(new GridBagLayout());
 		
-		minWordsSliderPanel = new SliderBarPanel(0, 20, "Minimum Word Count", "Minimum Word Count", 10);
+		minWordsSliderPanel = new IntegerSliderBarPanel(0, 20, "Minimum Word Count", "Minimum Word Count", 10);
+		
+		minWordsSliderPanel.getSlider().addChangeListener(new ChangeListener() {
+
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				JSlider slider = (JSlider) e.getSource();
+//				System.out.println("slider change");
+				
+//				System.out.println("Slider: " + slider.getValue());
+				wordCloudSettingsHolder.setMinWordCount(slider.getValue());
+			}
+			
+		});
 		
 		GridBagConstraints gridBagConstraints = new GridBagConstraints();
 		gridBagConstraints.gridx = 0;
@@ -675,6 +711,7 @@ public class WordCloudSettingsDialog extends JDialog {
 		//Add components to main panel
 		panel.add(maxWordsPanel);
 		panel.add(clusterCutoffPanel);
+		panel.add(sliderMaxPanel);
 		panel.add(minWordPanel);
 		panel.add(netNormalizationPanel);
 		
@@ -1240,6 +1277,29 @@ public class WordCloudSettingsDialog extends JDialog {
 					Double defaultClusterCutoff = 1.0;
 					clusterCutoffTextField.setValue(defaultClusterCutoff);
 					message += "The cluster cutoff must be greater than or equal to 0";
+					invalid = true;
+				}
+			}
+			
+			else if (source == sliderMaxTextField.getDocument()) {
+				try {
+					sliderMaxTextField.commitEdit();
+				} catch (ParseException e) {
+				}
+				
+				Number value = (Number) sliderMaxTextField.getValue();
+				if ((value != null) && (value.intValue() >= 0))
+				{
+					//All is well
+					wordCloudSettingsHolder.setMinWordCountSliderMax(value.intValue());
+					
+					minWordsSliderPanel.setMaximum(value.intValue());
+				}
+				else
+				{
+					Integer defaultMaxWords = wordCloudSettingsHolder.getMinWordCountSliderMax();
+					sliderMaxTextField.setValue(defaultMaxWords);
+					message += "The maximum number of words to display must be greater than or equal to 0.";
 					invalid = true;
 				}
 			}
