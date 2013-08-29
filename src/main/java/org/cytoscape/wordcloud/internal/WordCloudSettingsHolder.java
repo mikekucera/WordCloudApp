@@ -42,6 +42,8 @@ public class WordCloudSettingsHolder {
 	
 	private boolean isUsingStemming = true;
 	
+	private boolean isRemovingAllNumbers = false;
+	
 	// Minimum word count for word to appear
 	private int minWordCount = 0;
 	
@@ -89,6 +91,10 @@ public class WordCloudSettingsHolder {
 	
 	public boolean isUsingStemming() {
 		return this.isUsingStemming;
+	}
+	
+	public boolean isRemovingAllNumbers() {
+		return this.isRemovingAllNumbers;
 	}
 	
 	public int getMinWordCount() {
@@ -149,6 +155,12 @@ public class WordCloudSettingsHolder {
 	
 	public void setUsingStemming(boolean isUsingStemming) {
 		this.isUsingStemming = isUsingStemming;
+		
+		fireChangedEvent();
+	}
+	
+	public void setRemoveAllNumbers(boolean isRemovingAllNumbers) {
+		this.isRemovingAllNumbers = isRemovingAllNumbers;
 		
 		fireChangedEvent();
 	}

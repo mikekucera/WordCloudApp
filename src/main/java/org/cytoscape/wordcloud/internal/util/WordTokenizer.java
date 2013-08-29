@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.Set;
 
+import org.cytoscape.wordcloud.internal.WordCloudSettingsHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,17 +17,17 @@ public class WordTokenizer {
 	
 	private static final Logger logger = LoggerFactory.getLogger(WordTokenizer.class);
 	
-	private static final String TOKENIZATION_REGEX = "[\\s.,\\t]";
+	private static final String TOKENIZATION_REGEX = "[\\s\\.,\\t]";
 	
 	private Collection<String> ignoredWords;
 	
 	public WordTokenizer() {
 		this.ignoredWords = new LinkedList<String>();
 		
-		loadIgnoredWords("/tokenizer/ignoredWords.txt");
+		// loadIgnoredWords("/tokenizer/ignoredWords.txt");
 	}
 	
-	public Collection<String> tokenize(String text) {
+	public Collection<String> tokenize(WordCloudSettingsHolder wordCloudSettingsHolder, String text) {
 		
 		Collection<String> words = new LinkedList<String>();
 		
@@ -36,26 +38,19 @@ public class WordTokenizer {
 			// Only take non-empty strings
 			if (split[i].length() > 0) {
 				
-				// Skip words from our set of ignored words
-				boolean ignoreWord = false; 
+				words.add(split[i]);
 				
-				for (String ignoredWord : this.ignoredWords) {
-					if (split[i].equalsIgnoreCase(ignoredWord)) {
-
-						ignoreWord = true;
-						break;
-					}
-				}
-					
-				if (!ignoreWord) {
-					words.add(split[i]);
-				}
 			}
 		}
 		
 		return words;
 	}
 	
+	private String generateTokenizationRegex(Set<String> delimiters) {
+		return null;
+	}
+	
+	/*
 	public void loadIgnoredWords(String resourcePath) {
 		StringBuilder text = new StringBuilder();
 		
@@ -83,4 +78,5 @@ public class WordTokenizer {
 			}
 		}
 	}
+	*/
 }

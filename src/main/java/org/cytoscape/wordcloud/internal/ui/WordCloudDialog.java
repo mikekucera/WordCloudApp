@@ -281,7 +281,7 @@ public class WordCloudDialog extends JDialog {
 			Font font = new Font(defaultLabelFont.getFontName(), defaultLabelFont.getStyle(), fontSize);
 			
 			label.setFont(font);
-			label.addMouseListener(new WordCloudLabelMouseListener(label, nodesPerWordMap, 
+			label.addMouseListener(new WordCloudLabelMouseListener(label, word, nodesPerWordMap, 
 					this.cyApplicationManager,
 					this.cyEventHelper,
 					this.cyNetworkViewManager));
@@ -383,7 +383,7 @@ public class WordCloudDialog extends JDialog {
 			Font font = new Font(defaultLabelFont.getFontName(), defaultLabelFont.getStyle(), fontSize);
 			
 			label.setFont(font);
-			label.addMouseListener(new WordCloudLabelMouseListener(label, nodesPerWordMap, 
+			label.addMouseListener(new WordCloudLabelMouseListener(label, word, nodesPerWordMap, 
 					this.cyApplicationManager,
 					this.cyEventHelper,
 					this.cyNetworkViewManager));
@@ -401,18 +401,22 @@ public class WordCloudDialog extends JDialog {
 		private JLabel label;
 		private Map<String, Collection<CyNode>> nodesPerWordMap;
 		
+		private String originalWord;
+		
 		private CyApplicationManager cyApplicationManager;
 		private CyEventHelper cyEventHelper;
 		private CyNetworkViewManager cyNetworkViewManager;
 		
 		public WordCloudLabelMouseListener(
 				JLabel label,
+				String originalWord,
 				Map<String, Collection<CyNode>> nodesPerWordMap,
 				CyApplicationManager cyApplicationManager,
 				CyEventHelper cyEventHelper,
 				CyNetworkViewManager cyNetworkViewManager) {
 			
 			this.label = label;
+			this.originalWord = originalWord;
 			this.nodesPerWordMap = nodesPerWordMap;
 			
 			this.cyApplicationManager = cyApplicationManager;
@@ -440,7 +444,7 @@ public class WordCloudDialog extends JDialog {
 		public void mousePressed(MouseEvent arg0) {
 			RowSetListenerToggle.getInstance().stopListening(200);
 			
-			Collection<CyNode> nodesForWord = this.nodesPerWordMap.get(label.getText());
+			Collection<CyNode> nodesForWord = this.nodesPerWordMap.get(originalWord);
 			
 			WordCloudUtility.setNodeSelection(
 					nodesForWord, 

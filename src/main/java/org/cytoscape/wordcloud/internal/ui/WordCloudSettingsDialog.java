@@ -14,16 +14,25 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -784,7 +793,38 @@ public class WordCloudSettingsDialog extends JDialog {
 		addWordButton = new JButton();
 		addWordButton.setText("Add");
 //		addWordButton.setEnabled(false);
-		// addWordButton.addActionListener(this);
+		final WordCloudSettingsHolder wordCloudSettingsHolder = this.wordCloudSettingsHolder;
+		addWordButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				// Add word to excluded words list
+				Set<String> excludedWords = wordCloudSettingsHolder.getExcludedWordsLowercase();
+				
+				String newExcludedWord = addWordTextField.getText().toLowerCase();
+				
+				if (!excludedWords.contains(newExcludedWord)) {
+					excludedWords.add(newExcludedWord);
+					
+					// Trigger update event
+					wordCloudSettingsHolder.setExcludedWordsLowercase(excludedWords);
+				}
+				
+				// Update combo box
+				DefaultComboBoxModel comboBoxModel = new DefaultComboBoxModel();
+				
+				ArrayList<String> sortBuffer = new ArrayList<String>();
+				sortBuffer.addAll(excludedWords);
+				Collections.sort(sortBuffer);
+				
+				for (String word : sortBuffer) {
+					comboBoxModel.addElement(word);
+				}
+				
+				cmbRemoval.setModel(comboBoxModel);
+			}
+		});
 		
 		//Word panel
 		JPanel wordPanel = new JPanel();
@@ -827,11 +867,57 @@ public class WordCloudSettingsDialog extends JDialog {
 //	    cmbRemoval.addItemListener(this);
 	    cmbRemoval.setToolTipText("Allows for selection a word to remove from the semantic analysis exclusion list");
 
+	    // Populate word remove combo box
+	    {
+	    	DefaultComboBoxModel defaultComboBoxModel = new DefaultComboBoxModel();
+			
+			//Read file and retrieve all lines
+			InputStream inputStream = WordCloudSettingsDialog.class.getResourceAsStream("/tokenizer/ignoredWords.txt");
+			
+			BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
+			String line = null;
+
+			try {
+				while((line = in.readLine()) != null) {
+				    defaultComboBoxModel.addElement(line);
+				    wordCloudSettingsHolder.getExcludedWordsLowercase().add(line);
+				}
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+			
+			// Trigger settings update
+			wordCloudSettingsHolder.setExcludedWordsLowercase(wordCloudSettingsHolder.getExcludedWordsLowercase());
+			
+			cmbRemoval.setModel(defaultComboBoxModel);
+		}
+			
 	    //Word Removal Button
 	    removeWordButton = new JButton();
 	    removeWordButton.setText("Remove");
 //	    removeWordButton.setEnabled(false);
-//	    removeWordButton.addActionListener(this);
+	    removeWordButton.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				
+				// Remove from data structure
+				Set<String> excludedWords = wordCloudSettingsHolder.getExcludedWordsLowercase();
+				
+				String excludedWord = cmbRemoval.getSelectedItem().toString().toLowerCase();
+				
+				if (excludedWords.contains(excludedWord)) {
+					excludedWords.remove(excludedWord);
+					
+					// Trigger update event
+					wordCloudSettingsHolder.setExcludedWordsLowercase(excludedWords);
+				}
+				
+				// Remove from combo box
+				cmbRemoval.removeItem(cmbRemoval.getSelectedItem());
+			}
+	    	
+	    });
 		
 		gridBagConstraints = new GridBagConstraints();
 		gridBagConstraints.gridx = 0;
@@ -861,14 +947,21 @@ public class WordCloudSettingsDialog extends JDialog {
 		//Number Exclusion Stuff
 		
 		//Checkbox
-		numExclusion = new JCheckBox("Add the numbers 0 - 999 to the word exclusion list");
+		numExclusion = new JCheckBox("Add all real numbers to the word exclusion list");
 		
 		buf = new StringBuffer();
-		buf.append("<html>" + "Causes numbers in the range 0 - 999 that appear as <b>separate words</b> to be excluded" + "<br>");
+		buf.append("<html>" + "Causes numbers that appear as <b>separate words</b> to be excluded" + "<br>");
 		buf.append("<b>Hint:</b> To exclude numbers that appear within a word, either add the entire word to the exclusion list" + "<br>");
 		buf.append("or add the specific number to the list of delimiters used for word tokenization" + "</html>");
 		numExclusion.setToolTipText(buf.toString());
-//		numExclusion.addActionListener(this);
+		numExclusion.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				wordCloudSettingsHolder.setRemoveAllNumbers(numExclusion.isSelected());
+			}
+			
+		});
 		numExclusion.setSelected(false);
 //		numExclusion.setEnabled(false);
 		

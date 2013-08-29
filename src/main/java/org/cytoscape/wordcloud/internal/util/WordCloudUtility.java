@@ -7,6 +7,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.event.CyEventHelper;
@@ -57,9 +60,11 @@ public class WordCloudUtility {
 			List<String> nodeWords = WordCloudUtility.getWords(node, network,
 					wordCloudSettingsHolder.getWordTokenizer(),
 					wordCloudSettingsHolder.getExcludedColumnsMap(),
+					wordCloudSettingsHolder,
 					wordCloudSettingsHolder.isUsingStemming());
 			
 			for (String word : nodeWords) {
+				
 				// Add to the 'nodes per word' map
 				{
 					Collection<CyNode> nodesForWord = nodesPerWordMap.get(word);
@@ -86,13 +91,13 @@ public class WordCloudUtility {
 	}
 	
 	public static void buildReverseStemmingMap(CyNetwork network,
-			WordTokenizer wordTokenizer) {
+			WordCloudSettingsHolder wordCloudSettingsHolder, WordTokenizer wordTokenizer) {
 		
 		reverseStemmingMap.clear();
 		
 		for (CyNode node : network.getNodeList()) {
 			List<String> nodeWords = WordCloudUtility.getWords(node, network, wordTokenizer, 
-					new HashMap<CyNetwork, Collection<String>>(), false);
+					new HashMap<CyNetwork, Collection<String>>(), wordCloudSettingsHolder, false);
 			
 			for (String nodeWord : nodeWords) {
 				Stemmer stemmer = new Stemmer();
@@ -123,6 +128,7 @@ public class WordCloudUtility {
 	public static List<String> getWords(CyNode node, CyNetwork network, 
 			WordTokenizer wordTokenizer, 
 			Map<CyNetwork, Collection<String>> excludedColumnsMap,
+			WordCloudSettingsHolder wordCloudSettingsHolder,
 			boolean isUsingStemming) {
 		
 		List<String> words = new LinkedList<String>();
@@ -155,7 +161,7 @@ public class WordCloudUtility {
 			if (!columnIsExcluded) {
 				if (value instanceof String) {
 					// Split the string based on punctuation and spaces, then add the individual words
-					Collection<String> splitWords = wordTokenizer.tokenize((String) value);
+					Collection<String> splitWords = wordTokenizer.tokenize(wordCloudSettingsHolder, (String) value);
 
 					WordCloudUtility.addSplitToTotal(splitWords, words, isUsingStemming);
 					
@@ -166,7 +172,7 @@ public class WordCloudUtility {
 					for (Object listObject : list) {
 						if (listObject instanceof String) {
 							// Split the string based on punctuation and spaces, then add the individual words
-							Collection<String> splitWords = wordTokenizer.tokenize((String) listObject);
+							Collection<String> splitWords = wordTokenizer.tokenize(wordCloudSettingsHolder, (String) listObject);
 	
 							WordCloudUtility.addSplitToTotal(splitWords, words, isUsingStemming);
 						}
@@ -263,7 +269,9 @@ public class WordCloudUtility {
 			
 			// Prebuild the network reverse word stemming map if we're using stemming
 			if (wordCloudSettingsHolder.isUsingStemming()) {
-				WordCloudUtility.buildReverseStemmingMap(cyApplicationManager.getCurrentNetwork(), wordCloudSettingsHolder.getWordTokenizer());
+				WordCloudUtility.buildReverseStemmingMap(cyApplicationManager.getCurrentNetwork(), 
+						wordCloudSettingsHolder, 
+						wordCloudSettingsHolder.getWordTokenizer());
 			}
 			
 			Map<String, Integer> wordCounts = WordCloudUtility.getWordCounts(selectedNodes, 
@@ -274,10 +282,33 @@ public class WordCloudUtility {
 			// Remove words less than min word count
 			int minWordCount = wordCloudSettingsHolder.getMinWordCount();
 			HashSet<String> toBeRemovedWords = new HashSet<String>();
-			
 			for (Entry<String, Integer> entry : wordCounts.entrySet()) {
 				if (entry.getValue() < minWordCount) {
 					toBeRemovedWords.add(entry.getKey());
+				}
+			}
+			
+			// Remove numbers if needed
+			if (wordCloudSettingsHolder.isRemovingAllNumbers()) {
+				Pattern numberPattern = Pattern.compile("\\d+\\.?\\d*");
+				for (String word : wordCounts.keySet()) {
+					Matcher matcher = numberPattern.matcher(word);
+					
+					if (matcher.matches()) {
+						if (!toBeRemovedWords.contains(word)) {
+							toBeRemovedWords.add(word);
+						}
+					}
+				}
+			}
+			
+			// Remove excluded words if needed
+			Set<String> excludedWordsLowercase = wordCloudSettingsHolder.getExcludedWordsLowercase();
+			for (String word : wordCounts.keySet()) {
+				String lowercase = word.toLowerCase();
+				
+				if (excludedWordsLowercase.contains(lowercase) && !toBeRemovedWords.contains(word)) {
+					toBeRemovedWords.add(word);
 				}
 			}
 			
