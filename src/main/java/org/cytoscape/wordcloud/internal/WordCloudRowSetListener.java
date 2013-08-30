@@ -15,6 +15,7 @@ import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyRow;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableUtil;
+import org.cytoscape.model.events.RowSetRecord;
 import org.cytoscape.model.events.RowsSetEvent;
 import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.wordcloud.internal.ui.WordCloudDialog;
@@ -50,11 +51,26 @@ public class WordCloudRowSetListener implements RowsSetListener {
 			return;
 		}
 		
-		// Only take events that contain the "selected" column, and come from the default node table of the current network
-		if (e.containsColumn("selected") == false
-				|| e.getSource() != this.cyApplicationManager.getCurrentNetwork().getDefaultNodeTable()) {
+		if (e.getSource() != this.cyApplicationManager.getCurrentNetwork().getDefaultNodeTable()) {
 			return;
 		}
+		
+		// Check if row update includes selected node
+		boolean containsSelectedNode = false;
+		
+		Collection<RowSetRecord> rowSetRecords = e.getPayloadCollection();
+		for (RowSetRecord rowSetRecord : rowSetRecords) {
+			if (rowSetRecord.getRow().get("selected", Boolean.class) == true) {
+				containsSelectedNode = true;
+			}
+		}
+		
+		if (!containsSelectedNode) {
+			return;
+		}
+		
+		// Only take events that contain the "selected" column, and come from the default node table of the current network
+		// if (e.containsColumn("selected") == false
 		
 		if (this.wordCloudDialog.isVisible()) {
 			WordCloudUtility.updateWordCloud(this.cyApplicationManager, this.wordCloudSettingsHolder, this.wordCloudDialog);
