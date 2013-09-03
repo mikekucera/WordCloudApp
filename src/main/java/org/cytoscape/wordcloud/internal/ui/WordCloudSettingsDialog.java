@@ -105,9 +105,11 @@ public class WordCloudSettingsDialog extends JDialog {
 	private JComboBox cmbRemoval;
 	private JButton removeWordButton;
 	private JCheckBox numExclusion;
-	
 	private JComboBox cmbDelimiterAddition;
 	private JButton addDelimiterButton;
+	
+	private boolean hideUnimplemented = true;
+	
 	private JComboBox cmbDelimiterRemoval;
 	private JButton removeDelimiterButton;
 	private JCheckBox stemmer;
@@ -240,7 +242,10 @@ public class WordCloudSettingsDialog extends JDialog {
 		//Add all Panels
 		panel.add(semAnalysis);
 		panel.add(displaySettings);
-		panel.add(cloudLayout);
+		
+		if (!hideUnimplemented) {
+			panel.add(cloudLayout);
+		}
 		
 		collapsiblePanel.getContentPane().add(panel, BorderLayout.NORTH);
 		
@@ -262,7 +267,9 @@ public class WordCloudSettingsDialog extends JDialog {
 		CollapsiblePanel tokenizationPanel = createTokenizationPanel();
 		tokenizationPanel.setCollapsed(true);
 		
-		networkPanel.add(tokenizationPanel);
+		if (!hideUnimplemented) {
+			networkPanel.add(tokenizationPanel);
+		}
 		
 		//Stemmer Panel
 		CollapsiblePanel stemmingPanel = createStemmingPanel();
@@ -487,6 +494,9 @@ public class WordCloudSettingsDialog extends JDialog {
 		CyNetwork currentNetwork = this.cyApplicationManager.getCurrentNetwork();
 //		System.out.println("put excluded columns: " + excludedColumns);
 		this.wordCloudSettingsHolder.getExcludedColumnsMap().put(currentNetwork, excludedColumns);
+		
+		// Trigger settings update
+		this.wordCloudSettingsHolder.setExcludedColumnsMap(this.wordCloudSettingsHolder.getExcludedColumnsMap());
 	}
 	
 	private void updateAttNames()
@@ -719,7 +729,9 @@ public class WordCloudSettingsDialog extends JDialog {
 		
 		//Add components to main panel
 		panel.add(maxWordsPanel);
-		panel.add(clusterCutoffPanel);
+		if (!hideUnimplemented) {
+			panel.add(clusterCutoffPanel);
+		}
 		panel.add(sliderMaxPanel);
 		panel.add(minWordPanel);
 		panel.add(netNormalizationPanel);
